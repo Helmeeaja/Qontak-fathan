@@ -65,10 +65,10 @@ export const inputBase =
   "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] disabled:cursor-not-allowed disabled:bg-slate-100";
 
 export const selectBase =
-  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]";
+  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500";
 
 export const textareaBase =
-  "w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-[11px] text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand";
+  "w-full resize-y rounded-lg border border-slate-300 bg-white px-3 py-[11px] text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500";
 
 export const pageSpinner =
   "animate-spin rounded-full border-[3px] border-blue-100 border-t-brand";

@@ -18,9 +18,15 @@ import {
   statusLabels,
   statusBadgeClass,
   typeLabels,
-} from "@/components/data/dummy";
+} from "@/data/dummy";
+import {
+  customRoleFeatures,
+  inviteRoles,
+} from "@/components/data/roleData";
 
 const PAGE_SIZE = 10;
+
+const authorityColumns = ["View", "Create/Add", "Edit", "Delete"];
 
 function TransferOwnershipModal({ onClose }) {
   const [newOwner, setNewOwner] = useState("");
@@ -92,6 +98,569 @@ function TransferOwnershipModal({ onClose }) {
             onClick={onClose}
           >
             Transfer
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddCustomRoleModal({ onClose }) {
+  const [roleName, setRoleName] = useState("");
+  const [roleDescription, setRoleDescription] = useState("");
+  const [expandedFeatures, setExpandedFeatures] = useState([]);
+  const [authorityCells, setAuthorityCells] = useState({});
+
+  const enabledColumns = (feature) =>
+    feature.viewOnly ? ["View"] : authorityColumns;
+
+  const cellKey = (featureName, subName, column) =>
+    `${featureName}.${subName}.${column}`;
+
+  const isSubChecked = (feature, sub) =>
+    enabledColumns(feature).some(
+      (column) => authorityCells[cellKey(feature.name, sub, column)]
+    );
+
+  const checkedSubCount = (feature) =>
+    feature.subs.filter((sub) => isSubChecked(feature, sub)).length;
+
+  const selectedFeatureCount = customRoleFeatures.filter(
+    (feature) => checkedSubCount(feature) > 0
+  ).length;
+
+  const toggleFeatureExpand = (featureName) => {
+    setExpandedFeatures((prev) =>
+      prev.includes(featureName)
+        ? prev.filter((name) => name !== featureName)
+        : [...prev, featureName]
+    );
+  };
+
+  const setFeatureCells = (feature, value) => {
+    setAuthorityCells((prev) => {
+      const next = { ...prev };
+      for (const sub of feature.subs) {
+        for (const column of enabledColumns(feature)) {
+          next[cellKey(feature.name, sub, column)] = value;
+        }
+      }
+      return next;
+    });
+  };
+
+  const setSubCells = (feature, sub, value) => {
+    setAuthorityCells((prev) => {
+      const next = { ...prev };
+      for (const column of enabledColumns(feature)) {
+        next[cellKey(feature.name, sub, column)] = value;
+      }
+      return next;
+    });
+  };
+
+  const toggleColumn = (column) => {
+    const expandedWithColumn = customRoleFeatures.filter(
+      (feature) =>
+        expandedFeatures.includes(feature.name) &&
+        enabledColumns(feature).includes(column)
+    );
+    const allChecked =
+      expandedWithColumn.length > 0 &&
+      expandedWithColumn.every((feature) =>
+        feature.subs.every((sub) => authorityCells[cellKey(feature.name, sub, column)])
+      );
+    setAuthorityCells((prev) => {
+      const next = { ...prev };
+      for (const feature of expandedWithColumn) {
+        for (const sub of feature.subs) {
+          next[cellKey(feature.name, sub, column)] = !allChecked;
+        }
+      }
+      return next;
+    });
+  };
+
+  const isColumnAllChecked = (column) => {
+    const expandedWithColumn = customRoleFeatures.filter(
+      (feature) =>
+        expandedFeatures.includes(feature.name) &&
+        enabledColumns(feature).includes(column)
+    );
+    return (
+      expandedWithColumn.length > 0 &&
+      expandedWithColumn.every((feature) =>
+        feature.subs.every((sub) => authorityCells[cellKey(feature.name, sub, column)])
+      )
+    );
+  };
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/55 p-5">
+      <div className="flex max-h-[90vh] w-full max-w-[860px] flex-col overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-[22px] py-[18px]">
+          <h3 className="m-0 text-[19px] font-bold text-gray-900">Add custom role</h3>
+          <button
+            type="button"
+            className="cursor-pointer rounded-md border-0 bg-transparent p-[5px] text-slate-500 transition-colors hover:bg-slate-100"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-[22px] py-5">
+          <div className="mb-4 text-[13px] font-bold text-gray-900">Role info</div>
+
+          <div className="mb-4">
+            <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+              Role name <span className="ml-[3px] text-red-600">*</span>
+            </label>
+            <input
+              name="roleName"
+              type="text"
+              value={roleName}
+              onChange={(event) => setRoleName(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+            />
+          </div>
+
+          <div className="mb-5">
+            <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+              Description
+            </label>
+            <textarea
+              name="roleDescription"
+              rows={3}
+              maxLength={400}
+              value={roleDescription}
+              onChange={(event) => setRoleDescription(event.target.value)}
+              className="w-full resize-y rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+            />
+            <p className="m-0 mt-1 text-xs text-slate-400">
+              400 characters at maximum
+            </p>
+          </div>
+
+          <div className="mb-2 text-[13px] font-bold text-gray-900">
+            Authority <span className="ml-[3px] text-red-600">*</span>
+          </div>
+
+          <div className="mb-3 rounded-lg bg-slate-50 px-4 py-3 text-[13px] leading-relaxed text-slate-500">
+            Tick the related features to view the report details.
+            <br />
+            Example: if a user has the sales list report access, tick the view
+            sales details sub-feature as well to give a more detailed view role.
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="w-full min-w-[760px] border-collapse">
+              <thead>
+                <tr>
+                  <th className={`${th} w-[220px]`}>Feature ({selectedFeatureCount})</th>
+                  <th className={`${th} w-[250px]`}>Subfeature/additional function</th>
+                  {authorityColumns.map((column) => (
+                    <th key={column} className={`${th} w-[90px]`}>
+                      <div className="flex items-center justify-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-brand"
+                          checked={isColumnAllChecked(column)}
+                          onChange={() => toggleColumn(column)}
+                        />
+                        <span>{column}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {customRoleFeatures.map((feature) => (
+                  <FeatureAuthorityRows
+                    key={feature.name}
+                    feature={feature}
+                    expanded={expandedFeatures.includes(feature.name)}
+                    onToggleExpand={() => toggleFeatureExpand(feature.name)}
+                    featureChecked={checkedSubCount(feature) > 0}
+                    onToggleFeatureCells={() =>
+                      setFeatureCells(feature, checkedSubCount(feature) === 0)
+                    }
+                    checkedSubCount={checkedSubCount(feature)}
+                    authorityCells={authorityCells}
+                    cellKey={cellKey}
+                    enabledColumns={enabledColumns(feature)}
+                    onToggleSub={(sub, value) => setSubCells(feature, sub, value)}
+                    onToggleCell={(sub, column, value) =>
+                      setAuthorityCells((prev) => ({
+                        ...prev,
+                        [cellKey(feature.name, sub, column)]: value,
+                      }))
+                    }
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 justify-end gap-2.5 border-t border-gray-200 px-[22px] py-4">
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border border-gray-300 bg-white px-[15px] py-[9px] text-[13px] font-semibold text-gray-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border-0 bg-brand px-[15px] py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onClose}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureAuthorityRows({
+  feature,
+  expanded,
+  onToggleExpand,
+  featureChecked,
+  onToggleFeatureCells,
+  checkedSubCount,
+  authorityCells,
+  cellKey,
+  enabledColumns,
+  onToggleSub,
+  onToggleCell,
+}) {
+  const isSubChecked = (sub) =>
+    enabledColumns.some((column) => authorityCells[cellKey(feature.name, sub, column)]);
+
+  return (
+    <>
+      <tr className="cursor-pointer border-b border-slate-100 bg-white transition-colors hover:bg-slate-50">
+        <td className="px-[18px] py-3">
+          <div className="flex items-center gap-2.5">
+            <input
+              type="checkbox"
+              className="h-4 w-4 shrink-0 cursor-pointer accent-brand"
+              checked={featureChecked}
+              onClick={(event) => event.stopPropagation()}
+              onChange={() => onToggleFeatureCells()}
+            />
+            <span
+              className="text-sm font-semibold text-slate-900"
+              onClick={onToggleExpand}
+            >
+              {feature.name}
+            </span>
+            {checkedSubCount > 0 && (
+              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand/10 px-1.5 text-xs font-bold text-brand">
+                {checkedSubCount}
+              </span>
+            )}
+          </div>
+        </td>
+        <td colSpan={5} className="px-[18px] py-3" onClick={onToggleExpand}>
+          <span className="text-xs text-slate-400">
+            {expanded ? "Collapse" : "Expand sub-features"}
+          </span>
+        </td>
+      </tr>
+      {expanded &&
+        feature.subs.map((sub) => (
+          <tr key={sub} className="border-b border-slate-100 bg-white">
+            <td className="px-[18px] py-2.5" />
+            <td className="px-[18px] py-2.5">
+              <label className="flex cursor-pointer items-center gap-2.5">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand"
+                  checked={isSubChecked(sub)}
+                  onChange={(event) => onToggleSub(sub, event.target.checked)}
+                />
+                <span className="text-[13px] text-slate-700">{sub}</span>
+              </label>
+            </td>
+            {authorityColumns.map((column) => (
+              <td key={column} className="px-[18px] py-2.5 text-center">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 cursor-pointer accent-brand disabled:cursor-not-allowed disabled:opacity-30"
+                  disabled={!enabledColumns.includes(column)}
+                  checked={!!authorityCells[cellKey(feature.name, sub, column)]}
+                  onChange={(event) =>
+                    onToggleCell(sub, column, event.target.checked)
+                  }
+                />
+              </td>
+            ))}
+          </tr>
+        ))}
+    </>
+  );
+}
+
+function InviteUserModal({ onClose, onAddCustomRole }) {
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
+  const [accessTimeLimits, setAccessTimeLimits] = useState(false);
+  const [roleTab, setRoleTab] = useState("existing");
+  const [checkedRoles, setCheckedRoles] = useState({});
+  const [listManager, setListManager] = useState(false);
+  const [authorityCells, setAuthorityCells] = useState({});
+  const [restrictionCells, setRestrictionCells] = useState({});
+
+  const cellKey = (roleKey, option) => `${roleKey}.${option}`;
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/55 p-5">
+      <div className="flex max-h-[90vh] w-full max-w-[680px] flex-col overflow-hidden rounded-xl bg-white shadow-[0_20px_50px_rgba(0,0,0,0.2)]">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-[22px] py-[18px]">
+          <h3 className="m-0 text-[19px] font-bold text-gray-900">Invite user</h3>
+          <button
+            type="button"
+            className="cursor-pointer rounded-md border-0 bg-transparent p-[5px] text-slate-500 transition-colors hover:bg-slate-100"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-[22px] py-5">
+          <div className="mb-4 text-[13px] font-bold text-gray-900">User info</div>
+
+          <div className="mb-4">
+            <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+              User name <span className="ml-[3px] text-red-600">*</span>
+            </label>
+            <input
+              name="inviteUserName"
+              type="text"
+              value={userName}
+              onChange={(event) => setUserName(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+              Email <span className="ml-[3px] text-red-600">*</span>
+            </label>
+            <input
+              name="inviteEmail"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+            />
+          </div>
+
+          <label className="mb-1 flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold text-gray-700">
+            <input
+              type="checkbox"
+              name="applyAccessTimeLimits"
+              className="h-4 w-4 accent-brand"
+              checked={accessTimeLimits}
+              onChange={(event) => setAccessTimeLimits(event.target.checked)}
+            />
+            Apply access time limits
+          </label>
+          <p className="m-0 mb-5 text-xs leading-relaxed text-slate-400">
+            Can be applied to all roles except Owner and Ultimate with the
+            ticked List Manager.
+          </p>
+
+          <div className="mb-3 text-[13px] font-bold text-gray-900">
+            Role <span className="ml-[3px] text-red-600">*</span>
+          </div>
+
+          <div className="mb-4 flex gap-2">
+            <button
+              type="button"
+              className={
+                roleTab === "existing"
+                  ? "cursor-pointer rounded-md border border-brand bg-brand/5 px-3.5 py-1.5 text-[13px] font-semibold text-brand"
+                  : "cursor-pointer rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              }
+              onClick={() => setRoleTab("existing")}
+            >
+              Existing
+            </button>
+            <button
+              type="button"
+              className={
+                roleTab === "custom"
+                  ? "cursor-pointer rounded-md border border-brand bg-brand/5 px-3.5 py-1.5 text-[13px] font-semibold text-brand"
+                  : "cursor-pointer rounded-md border border-slate-300 bg-white px-3.5 py-1.5 text-[13px] font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              }
+              onClick={() => setRoleTab("custom")}
+            >
+              Custom
+            </button>
+          </div>
+
+          {roleTab === "custom" ? (
+            <div className="mb-5 flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 px-4 py-10 text-center">
+              <div className="text-sm font-semibold text-slate-700">
+                Custom roles will appear here
+              </div>
+              <p className="m-0 text-[13px] text-slate-400">
+                Add new custom role from Add custom role button.
+              </p>
+              <button
+                type="button"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-slate-50"
+                onClick={onAddCustomRole}
+              >
+                Add custom role
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-5 grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                {inviteRoles.map((role) => (
+                  <div
+                    key={role.key}
+                    className={`rounded-lg border px-4 py-3 ${
+                      checkedRoles[role.key]
+                        ? "border-brand bg-brand/5"
+                        : "border-slate-200 bg-white"
+                    }`}
+                  >
+                    <label className="flex cursor-pointer items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        name={`existing-role-${role.key}`}
+                        className="h-4 w-4 accent-brand"
+                        checked={!!checkedRoles[role.key]}
+                        onChange={(event) =>
+                          setCheckedRoles((prev) => ({
+                            ...prev,
+                            [role.key]: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span className="text-[13px] font-bold text-slate-900">
+                        {role.name}
+                      </span>
+                    </label>
+
+                    <ul className="m-0 mt-2 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-slate-500">
+                      {role.bullets.map((bullet) => (
+                        <li key={bullet}>{bullet}</li>
+                      ))}
+                    </ul>
+
+                    {role.authority && (
+                      <div className="mt-3">
+                        <div className="mb-1.5 text-[13px] font-bold text-gray-900">
+                          {role.authority}
+                        </div>
+                        {role.authorityOptions.map((option) => (
+                          <label
+                            key={option}
+                            className="mt-1 flex cursor-pointer items-center gap-2.5 text-[13px] text-slate-700"
+                          >
+                            <input
+                              type="checkbox"
+                              name={`${role.key}-authority-${option}`}
+                              className="h-4 w-4 accent-brand"
+                              checked={!!authorityCells[cellKey(role.key, option)]}
+                              onChange={(event) =>
+                                setAuthorityCells((prev) => ({
+                                  ...prev,
+                                  [cellKey(role.key, option)]: event.target.checked,
+                                }))
+                              }
+                            />
+                            {option}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+
+                    {role.restriction && (
+                      <div className="mt-3">
+                        <div className="mb-1.5 text-[13px] font-bold text-gray-900">
+                          Access limitation
+                        </div>
+                        <label className="flex cursor-pointer items-start gap-2.5 text-[13px] leading-relaxed text-slate-700">
+                          <input
+                            type="checkbox"
+                            name={`${role.key}-restriction`}
+                            className="mt-0.5 h-4 w-4 shrink-0 accent-brand"
+                            checked={!!restrictionCells[role.key]}
+                            onChange={(event) =>
+                              setRestrictionCells((prev) => ({
+                                ...prev,
+                                [role.key]: event.target.checked,
+                              }))
+                            }
+                          />
+                          {role.restriction}
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mb-2 text-[13px] font-bold text-gray-900">
+                Additional authority
+              </div>
+              <div className="mb-5 rounded-lg border border-slate-200 p-4">
+                <label className="flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    name="listManager"
+                    className="h-4 w-4 accent-brand"
+                    checked={listManager}
+                    onChange={(event) => setListManager(event.target.checked)}
+                  />
+                  <span className="text-[13px] font-semibold text-slate-700">
+                    List Manager (can edit and delete data)
+                  </span>
+                </label>
+              </div>
+            </>
+          )}
+
+          <div className="rounded-lg bg-slate-50 px-4 py-3">
+            <div className="mb-1.5 text-[13px] font-bold text-gray-900">
+              Terms for selecting roles
+            </div>
+            <ul className="m-0 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-slate-500">
+              <li>
+                Custom role authority is dominant (always be the reference for
+                role management).
+              </li>
+              <li>
+                If you select more than one custom role, the authority from
+                each custom role will be merged.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 justify-end gap-2.5 border-t border-gray-200 px-[22px] py-4">
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border border-gray-300 bg-white px-[15px] py-[9px] text-[13px] font-semibold text-gray-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border-0 bg-brand px-[15px] py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={onClose}
+          >
+            Invite
           </button>
         </div>
       </div>
@@ -205,6 +774,8 @@ export default function UserManagementPage() {
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [userListPage, setUserListPage] = useState(true);
   const [transferModalUser, setTransferModalUser] = useState(null);
+  const [customRoleModalOpen, setCustomRoleModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   useEffect(() => {
     setUsers(dummyUsers);
@@ -257,8 +828,8 @@ export default function UserManagementPage() {
         </div>
 
         <div className="flex gap-3 ">
-          <button className={btnSecondary}>Add custom role</button>
-          <button className={btnPrimary}>Invite user</button>
+          <button className={btnSecondary} onClick={() => setCustomRoleModalOpen(true)}>Add custom role</button>
+          <button className={btnPrimary} onClick={() => setInviteModalOpen(true)}>Invite user</button>
         </div>
       </div>
 
@@ -350,6 +921,20 @@ export default function UserManagementPage() {
       {transferModalUser !== null && (
         <TransferOwnershipModal
           onClose={() => setTransferModalUser(null)}
+        />
+      )}
+
+      {customRoleModalOpen && (
+        <AddCustomRoleModal onClose={() => setCustomRoleModalOpen(false)} />
+      )}
+
+      {inviteModalOpen && (
+        <InviteUserModal
+          onClose={() => setInviteModalOpen(false)}
+          onAddCustomRole={() => {
+            setInviteModalOpen(false);
+            setCustomRoleModalOpen(true);
+          }}
         />
       )}
     </div>

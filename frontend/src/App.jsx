@@ -8,7 +8,10 @@ import COAPage from "./pages/COAPage";
 import CustomersPage from "./pages/CustomersPage";
 import CompanyPage from "./pages/CompanyPage";
 import UserManagement from "./pages/UserManagementPage";
-import SalesPage from "./pages/SalesPage"
+import SalesPage from "./pages/SalesPage";
+import PurchasesPage from "./pages/PurchasesPage";
+import ProductsPage from "./pages/ProductsPage";
+import ProductionsPage from "./pages/ProductionsPage";
 
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
@@ -35,6 +38,12 @@ export default function App() {
           <Route path="/usermanagement" element={<UserManagement />} />
 
           <Route path="/sales" element={<SalesPage />} />
+
+          <Route path="/purchases" element={<PurchasesPage />}/>
+
+          <Route path="/products" element={<ProductsPage />} />
+
+          <Route path="/productions" element={<ProductionsPage />} />
         </Route>
       </Route>
 

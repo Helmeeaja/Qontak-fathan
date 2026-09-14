@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { Pencil } from "@phosphor-icons/react";
 import {
+  btnModalCancel,
   btnModalSubmit,
+  btnSecondary,
   formLabel,
+  inputBase,
   selectBase,
   textareaBase,
 } from "@/components/ui/styles";
@@ -18,6 +22,15 @@ const initialSalesSettings = {
   priceRuleForSalePrice: false,
   defaultSalesMessage: "",
   defaultDeliveryOrderMessage: "",
+};
+
+const initialReminderSettings = {
+  reminderEnabled: false,
+  saleType: "Invoice penjualan",
+  nominalBelow: "",
+  disableLowNominal: false,
+  disableSelectedCustomers: false,
+  disableSelectedInvoices: false,
 };
 
 const invoiceTermOptions = ["Net 15", "Net 30", "Net 60", "Cash On Delivery", "Custom"];
@@ -50,6 +63,36 @@ function MainTab({ mainPage, setMainPage }) {
   );
 }
 
+function CardHeader({ title, subtitle, editing, onEdit }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <h2 className="m-0 text-[19px] font-bold text-gray-900">{title}</h2>
+        <p className="m-0 mt-1 text-sm text-slate-500">{subtitle}</p>
+      </div>
+      {!editing && (
+        <button type="button" className={btnSecondary} onClick={onEdit}>
+          <Pencil size={14} />
+          <span>Edit</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SaveActions({ onCancel, onSave }) {
+  return (
+    <div className="mt-6 flex justify-end gap-2.5 border-t border-gray-200 pt-5">
+      <button type="button" className={btnModalCancel} onClick={onCancel}>
+        Batal
+      </button>
+      <button type="button" className={btnModalSubmit} onClick={onSave}>
+        Simpan perubahan
+      </button>
+    </div>
+  );
+}
+
 function EditField({ label, full, children }) {
   return (
     <div className={full ? "col-span-full" : ""}>
@@ -59,13 +102,14 @@ function EditField({ label, full, children }) {
   );
 }
 
-function CheckRow({ label, description, checked, onChange }) {
+function CheckRow({ label, description, checked, disabled, onChange }) {
   return (
-    <label className="flex cursor-pointer select-none items-start gap-2.5">
+    <label className={`flex select-none items-start gap-2.5 ${disabled ? "" : "cursor-pointer"}`}>
       <input
         type="checkbox"
-        className="mt-0.5 h-4 w-4 cursor-pointer accent-brand"
+        className="mt-0.5 h-4 w-4 accent-brand enabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
         checked={checked}
+        disabled={disabled}
         onChange={onChange}
       />
       <span>
@@ -81,6 +125,9 @@ function CheckRow({ label, description, checked, onChange }) {
 function FormSetting() {
   const [savedSettings, setSavedSettings] = useState(initialSalesSettings);
   const [draft, setDraft] = useState(initialSalesSettings);
+  const [editing, setEditing] = useState(false);
+
+  const readOnly = !editing;
 
   const setField = (field, value) => {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -90,22 +137,36 @@ function FormSetting() {
     setDraft((current) => ({ ...current, [field]: !current[field] }));
   };
 
-  const handleSave = () => {
+  const startEdit = () => {
+    setDraft(savedSettings);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setDraft(savedSettings);
+  };
+
+  const saveEdit = () => {
     setSavedSettings(draft);
+    setEditing(false);
   };
 
   return (
     <div className="mb-6 mt-4 rounded-[10px] bg-white p-6 shadow-sm">
-      <h2 className="m-0 text-[19px] font-bold text-gray-900">Pengaturan Penjualan</h2>
-      <p className="m-0 mt-1 text-sm text-slate-500">
-        Atur opsi default yang dipakai saat membuat penawaran dan invoice penjualan.
-      </p>
+      <CardHeader
+        title="Pengaturan Penjualan"
+        subtitle="Atur opsi default yang dipakai saat membuat penawaran dan invoice penjualan."
+        editing={editing}
+        onEdit={startEdit}
+      />
 
       <div className="mt-5 grid grid-cols-2 gap-[18px] max-md:grid-cols-1">
         <EditField label="Termin pembayaran invoice">
           <select
             className={selectBase}
             value={draft.invoiceTerm}
+            disabled={readOnly}
             onChange={(e) => setField("invoiceTerm", e.target.value)}
           >
             {invoiceTermOptions.map((term) => (
@@ -121,42 +182,50 @@ function FormSetting() {
         <CheckRow
           label="Pengiriman"
           checked={draft.shipping}
+          disabled={readOnly}
           onChange={() => toggleField("shipping")}
         />
         <CheckRow
           label="Diskon"
           checked={draft.discount}
+          disabled={readOnly}
           onChange={() => toggleField("discount")}
         />
         <CheckRow
           label="Diskon per baris"
           checked={draft.discountPerLine}
+          disabled={readOnly}
           onChange={() => toggleField("discountPerLine")}
         />
         <CheckRow
           label="Akun diskon per produk"
           checked={draft.discountAccountPerProduct}
+          disabled={readOnly}
           onChange={() => toggleField("discountAccountPerProduct")}
         />
         <CheckRow
           label="Uang muka"
           checked={draft.downPayment}
+          disabled={readOnly}
           onChange={() => toggleField("downPayment")}
         />
         <CheckRow
           label="Tampilkan profit % pada form invoice"
           checked={draft.showProfitOnInvoice}
+          disabled={readOnly}
           onChange={() => toggleField("showProfitOnInvoice")}
         />
         <CheckRow
           label="Nonaktifkan penjualan jika stok tidak mencukupi"
           description="Sistem menolak pembuatan invoice penjualan ketika stok produk tidak tersedia atau tidak mencukupi."
           checked={draft.blockSalesOnLowStock}
+          disabled={readOnly}
           onChange={() => toggleField("blockSalesOnLowStock")}
         />
         <CheckRow
           label="Harga jual menggunakan aturan harga"
           checked={draft.priceRuleForSalePrice}
+          disabled={readOnly}
           onChange={() => toggleField("priceRuleForSalePrice")}
         />
       </div>
@@ -168,6 +237,7 @@ function FormSetting() {
             className={textareaBase}
             placeholder="Pesan yang tampil secara default pada form penjualan"
             value={draft.defaultSalesMessage}
+            disabled={readOnly}
             onChange={(e) => setField("defaultSalesMessage", e.target.value)}
           />
         </EditField>
@@ -178,16 +248,13 @@ function FormSetting() {
             className={textareaBase}
             placeholder="Pesan yang tampil secara default pada surat jalan"
             value={draft.defaultDeliveryOrderMessage}
+            disabled={readOnly}
             onChange={(e) => setField("defaultDeliveryOrderMessage", e.target.value)}
           />
         </EditField>
       </div>
 
-      <div className="mt-6 flex justify-end border-t border-gray-200 pt-5">
-        <button type="button" className={btnModalSubmit} onClick={handleSave}>
-          Simpan perubahan
-        </button>
-      </div>
+      {editing && <SaveActions onCancel={cancelEdit} onSave={saveEdit} />}
     </div>
   );
 }
@@ -298,29 +365,58 @@ function IntervalReminderModal({ onClose }) {
 }
 
 function InvoiceReminder() {
-  const [reminderEnabled, setReminderEnabled] = useState(false);
-  const [saleType, setSaleType] = useState("Invoice penjualan");
+  const [savedSettings, setSavedSettings] = useState(initialReminderSettings);
+  const [draft, setDraft] = useState(initialReminderSettings);
+  const [editing, setEditing] = useState(false);
   const [intervalPopupOpen, setIntervalPopupOpen] = useState(false);
-  const [nominalBelow, setNominalBelow] = useState("");
-  const [disableLowNominal, setDisableLowNominal] = useState(false);
-  const [disableSelectedCustomers, setDisableSelectedCustomers] = useState(false);
-  const [disableSelectedInvoices, setDisableSelectedInvoices] = useState(false);
 
-  const handleSave = () => {
+  const readOnly = !editing;
+  const controlsDisabled = readOnly || !draft.reminderEnabled;
+
+  const setField = (field, value) => {
+    setDraft((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleField = (field) => {
+    setDraft((current) => ({ ...current, [field]: !current[field] }));
+  };
+
+  const startEdit = () => {
+    setDraft(savedSettings);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setDraft(savedSettings);
+    setIntervalPopupOpen(false);
+  };
+
+  const saveEdit = () => {
+    setSavedSettings(draft);
+    setEditing(false);
     setIntervalPopupOpen(false);
   };
 
   return (
     <div className="mb-6 mt-4 rounded-[10px] bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <label className="flex cursor-pointer select-none items-center gap-3">
+      <CardHeader
+        title="Pengaturan Invoice Reminder"
+        subtitle="Atur pengingat email otomatis untuk invoice yang mendekati jatuh tempo."
+        editing={editing}
+        onEdit={startEdit}
+      />
+
+      <div className="mt-5">
+        <label className={`flex select-none items-center gap-3 ${readOnly ? "" : "cursor-pointer"}`}>
           <input
             type="checkbox"
             className="peer sr-only"
-            checked={reminderEnabled}
-            onChange={() => setReminderEnabled(!reminderEnabled)}
+            checked={draft.reminderEnabled}
+            disabled={readOnly}
+            onChange={() => toggleField("reminderEnabled")}
           />
-          <span className="relative h-[22px] w-10 rounded-full bg-slate-300 transition-colors peer-checked:bg-brand after:absolute after:left-[3px] after:top-[3px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-[18px]"></span>
+          <span className="relative h-[22px] w-10 rounded-full bg-slate-300 transition-colors peer-checked:bg-brand peer-disabled:opacity-60 after:absolute after:left-[3px] after:top-[3px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-[18px]"></span>
           <span className="text-sm font-semibold text-gray-700">
             Kirim email pengingat invoice
           </span>
@@ -335,9 +431,9 @@ function InvoiceReminder() {
           <select
             name="saleType"
             className={selectBase}
-            value={saleType}
-            disabled={!reminderEnabled}
-            onChange={(event) => setSaleType(event.target.value)}
+            value={draft.saleType}
+            disabled={controlsDisabled}
+            onChange={(event) => setField("saleType", event.target.value)}
           >
             <option value="Invoice penjualan">Invoice penjualan</option>
             <option value="Pesanan penjualan">Pesanan penjualan</option>
@@ -351,7 +447,7 @@ function InvoiceReminder() {
         <button
           type="button"
           className="border-0 bg-transparent p-0 text-[13px] font-semibold text-brand enabled:cursor-pointer enabled:hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!reminderEnabled}
+          disabled={controlsDisabled}
           onClick={() => setIntervalPopupOpen(true)}
         >
           + Tambah interval
@@ -368,9 +464,9 @@ function InvoiceReminder() {
             <input
               type="checkbox"
               className="h-4 w-4 accent-brand enabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-              checked={disableLowNominal}
-              disabled={!reminderEnabled}
-              onChange={() => setDisableLowNominal(!disableLowNominal)}
+              checked={draft.disableLowNominal}
+              disabled={controlsDisabled}
+              onChange={() => toggleField("disableLowNominal")}
             />
             <span className="text-sm text-gray-700">Nominal di bawah</span>
           </label>
@@ -378,9 +474,9 @@ function InvoiceReminder() {
             type="text"
             placeholder="Rp.0,00"
             className="w-[160px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-[border-color,box-shadow] placeholder:text-slate-400 focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)] disabled:cursor-not-allowed disabled:bg-slate-100"
-            value={nominalBelow}
-            disabled={!reminderEnabled}
-            onChange={(event) => setNominalBelow(event.target.value)}
+            value={draft.nominalBelow}
+            disabled={controlsDisabled}
+            onChange={(event) => setField("nominalBelow", event.target.value)}
           />
         </div>
 
@@ -389,9 +485,9 @@ function InvoiceReminder() {
             <input
               type="checkbox"
               className="h-4 w-4 accent-brand enabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-              checked={disableSelectedCustomers}
-              disabled={!reminderEnabled}
-              onChange={() => setDisableSelectedCustomers(!disableSelectedCustomers)}
+              checked={draft.disableSelectedCustomers}
+              disabled={controlsDisabled}
+              onChange={() => toggleField("disableSelectedCustomers")}
             />
             <span className="text-sm text-gray-700">0 pelanggan terpilih</span>
           </label>
@@ -403,9 +499,9 @@ function InvoiceReminder() {
             <input
               type="checkbox"
               className="h-4 w-4 accent-brand enabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-              checked={disableSelectedInvoices}
-              disabled={!reminderEnabled}
-              onChange={() => setDisableSelectedInvoices(!disableSelectedInvoices)}
+              checked={draft.disableSelectedInvoices}
+              disabled={controlsDisabled}
+              onChange={() => toggleField("disableSelectedInvoices")}
             />
             <span className="text-sm text-gray-700">0 invoice terpilih</span>
           </label>
@@ -413,11 +509,7 @@ function InvoiceReminder() {
         </div>
       </div>
 
-      <div className="mt-6 flex justify-end border-t border-gray-200 pt-5">
-        <button type="button" className={btnModalSubmit} onClick={handleSave}>
-          Simpan perubahan
-        </button>
-      </div>
+      {editing && <SaveActions onCancel={cancelEdit} onSave={saveEdit} />}
 
       {intervalPopupOpen && (
         <IntervalReminderModal onClose={() => setIntervalPopupOpen(false)} />
