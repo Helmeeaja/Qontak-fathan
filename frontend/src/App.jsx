@@ -12,6 +12,7 @@ import SalesPage from "./pages/SalesPage";
 import PurchasesPage from "./pages/PurchasesPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductionsPage from "./pages/ProductionsPage";
+import TemplatePage from "./pages/TemplatePage";
 
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
@@ -41,9 +42,11 @@ export default function App() {
 
           <Route path="/purchases" element={<PurchasesPage />}/>
 
-          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products" element={<ProductsPage />}/>
 
-          <Route path="/productions" element={<ProductionsPage />} />
+          <Route path="/productions" element={<ProductionsPage />}/>
+
+          <Route path="/template" element={<TemplatePage />}/>
         </Route>
       </Route>
 

@@ -10,7 +10,8 @@ import {
   Tag,
   ShoppingCart,
   Package,
-  Factory
+  Factory,
+  Article,
 } from "@phosphor-icons/react";
 
 import brandLogo from "@/assets/brand.png";
@@ -66,6 +67,11 @@ const navItems = [
     label: "Productions",
     icon: Factory,
     path: "/productions"
+  },
+  {
+    label: "Template",
+    icon: Article,
+    path: "/template"
   }
 ];
 
