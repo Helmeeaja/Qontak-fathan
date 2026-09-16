@@ -10,7 +10,13 @@ Versi dasar QontakSales yang dipersiapkan untuk pengembangan berikutnya.
 - Logout
 - Customer
 - COA (Chart of Accounts)
-- 
+- Company
+- UserManagement
+- Sales
+- Purchase
+- Products
+- Productions
+- Template
 
 ## Backend
 Django REST Framework + PostgreSQL + JWT
