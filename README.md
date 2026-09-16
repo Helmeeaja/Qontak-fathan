@@ -8,10 +8,9 @@ Versi dasar QontakSales yang dipersiapkan untuk pengembangan berikutnya.
 - Dashboard statistik user/agent/manager
 - CRUD Agent untuk manager
 - Logout
-
-## Rencana pengembangan
 - Customer
 - COA (Chart of Accounts)
+- 
 
 ## Backend
 Django REST Framework + PostgreSQL + JWT
