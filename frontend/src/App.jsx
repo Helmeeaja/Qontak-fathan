@@ -13,7 +13,11 @@ import PurchasesPage from "./pages/PurchasesPage";
 import ProductsPage from "./pages/ProductsPage";
 import ProductionsPage from "./pages/ProductionsPage";
 import TemplatePage from "./pages/TemplatePage";
-
+import CustomFieldsPage from "./pages/CustomFieldsPage";
+import AccountMappingPage from "./pages/AccountMappingPage";
+import BillingsPage from "./pages/BillingsPage";
+import ApprovalRulesPage from "./pages/ApprovalRulesPage";
+import TaggingRulesPage from "./pages/TaggingRulesPage";
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
 
@@ -47,6 +51,15 @@ export default function App() {
           <Route path="/productions" element={<ProductionsPage />}/>
 
           <Route path="/template" element={<TemplatePage />}/>
+
+          <Route path="/customfields" element={<CustomFieldsPage />}/>
+
+          <Route path="/accountmapping" element={<AccountMappingPage />}/>
+
+          <Route path="/billings" element={<BillingsPage />}/>
+          <Route path="/approvalrules" element={<ApprovalRulesPage />}/>
+          <Route path="/taggingrules" element={<TaggingRulesPage />}/>
+
         </Route>
       </Route>
 

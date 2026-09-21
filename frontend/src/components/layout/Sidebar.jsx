@@ -12,8 +12,11 @@ import {
   Package,
   Factory,
   Article,
+  NotePencil,
+  MapPinArea,
+  CurrencyDollar,
+  Clipboard,
 } from "@phosphor-icons/react";
-
 import brandLogo from "@/assets/brand.png";
 
 const navItems = [
@@ -44,7 +47,7 @@ const navItems = [
     path: "/company",
   },
   {
-    label: "UserManagement",
+    label: "User Management",
     icon: UsersThree,
     path: "/usermanagement",
   },
@@ -72,6 +75,30 @@ const navItems = [
     label: "Template",
     icon: Article,
     path: "/template"
+  },
+  {
+    label: "Custom Fields",
+    icon: NotePencil,
+    path: "/customfields",
+  },{
+    label: "Accounts Mapping",
+    icon: MapPinArea,
+    path: "/accountmapping",
+  },
+  {
+    label: "Billings",
+    icon: CurrencyDollar,
+    path: "/billings",
+  },
+  {
+    label: "Approval Rules",
+    icon: Clipboard,
+    path: "/approvalrules",
+  },
+  {
+    label: "Tagging Rules",
+    icon: Tag,
+    path: "/taggingrules",
   }
 ];
 
@@ -121,7 +148,7 @@ export default function Sidebar({ open, onClose }) {
           </button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.path;

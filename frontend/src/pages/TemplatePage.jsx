@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CaretDown, Trash, Info } from "@phosphor-icons/react";
+import { CaretDown, Trash, Info,Envelope, FilePdf, WhatsappLogo, } from "@phosphor-icons/react";
 import {
   selectBase,
   inputBase,
@@ -8,11 +8,7 @@ import {
   btnModalCancel,
   btnModalSubmit,
 } from "@/components/ui/styles";
-import {
-  Envelope,
-  FilePdf,
-  WhatsappLogo,
-} from  "@phosphor-icons/react";
+
 import { PdfPaper } from "@/components/pdf/PdfPapers";
 const TabEmail = ["Sales Invoice", "Sales Quote", "Sales Order", "Purchase Order"];
 const TabPDF = ["General Setting", "Customize PDF"];
@@ -31,7 +27,10 @@ function TabNav({
   return (
     <div className="flex flex-wrap gap-3">
       <div>
-        <label className={formLabel}>Email Template</label>
+        <div className="flex items-center gap-3">
+          <Envelope />
+         <label className={formLabel}>Email Template</label>
+        </div>
         <select
           className={selectBase}
           value={tab === "email" ? emailTemplate : ""}
@@ -52,7 +51,10 @@ function TabNav({
       </div>
 
       <div>
-        <label className={formLabel}>PDF Template</label>
+        <div className="flex items-center gap-3">
+          <FilePdf />
+          <label className={formLabel}> PDF Template</label>
+         </div>
         <select
           className={selectBase}
           value={tab === "pdf" ? pdfTemplate : ""}
@@ -73,7 +75,10 @@ function TabNav({
       </div>
 
       <div>
+        <div className="flex items-center gap-3">
+        <WhatsappLogo />
         <label className={formLabel}>WhatsApp Template</label>
+       </div>
         <select
           className={selectBase}
           value={tab === "whatsapp" ? whatsappTemplate : ""}
@@ -643,7 +648,7 @@ function GeneralSetting() {
 
             <button
               type="button"
-              className="mt-4 inline-flex cursor-pointer items-center rounded-md border-0 bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+              className={btnModalSubmit}
               onClick={() => {
                 setSignatureRows([...signatureRows, { option: "", text: "" }]);
                 setSaved(false);
@@ -667,8 +672,7 @@ function GeneralSetting() {
         <div className="flex items-center justify-end gap-4 mt-3 pt-5">
           <SavedNote saved={saved} />
           <button
-            className="inline-flex cursor-pointer items-center justify-center rounded-lg border-0 bg-green-600 px-[15px] py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-green-700"
-            onClick={() => setSaved(true)}
+            className={btnModalSubmit}
           >
             Save
           </button>
