@@ -48,16 +48,48 @@ const MAX_APPROVAL_STEPS = 4;
 const RULE_NAME_MAX = 60;
 const DESCRIPTION_MAX = 200;
 
+function useOutsideClose() {
+  const ref = useRef(null);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return { ref, open, setOpen };
+}
+
 const formatAmount = (value) =>
   new Intl.NumberFormat("id-ID", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(value || 0);
+  }).format(Number(value) || 0);
+
+const getRuleAmount = (rule) =>
+  Number(rule?.amountValue ?? rule?.amount ?? 0) || 0;
 
 const parseAmount = (value) => {
   const cleaned = value.replace(/[^0-9]/g, "");
   return cleaned ? parseInt(cleaned, 10) : 0;
 };
+
+const titleCase = (value) =>
+  value
+    ? value
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    : "";
+
+const displayName = (username) =>
+  username ? titleCase(String(username).replace(/\./g, " ")) : "";
 
 function productScopeLabel(type) {
   if (type === "Product conversion") return "Product conversion in";
@@ -131,7 +163,9 @@ function ApprovalRuleForm({ initialRule, onSubmit, onClose }) {
   );
   const [criteria, setCriteria] = useState(initialRule?.criteria || []);
   const [overdueDays, setOverdueDays] = useState(initialRule?.overdueDays || 0);
-  const [amountValue, setAmountValue] = useState(initialRule?.amountValue || 0);
+  const [amountValue, setAmountValue] = useState(
+    initialRule?.amountValue ?? initialRule?.amount ?? 0
+  );
   const [steps, setSteps] = useState(
     initialRule?.levels || [{ approverType: "All must approve", approvers: [] }]
   );
@@ -846,26 +880,45 @@ function ChangelogModal({ onClose }) {
   );
 }
 
-function RuleDetailModal({ rule, onEdit, onClose }) {
+function RuleDetailModal({ rule, onEdit, onDelete, onClose }) {
   const { ref, open, setOpen } = useOutsideClose();
+  const [showAllUsers, setShowAllUsers] = useState(false);
+  const allUsersRef = useRef(null);
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      if (allUsersRef.current && !allUsersRef.current.contains(event.target)) {
+        setShowAllUsers(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   const criteriaRows = [
-    {
-      label: "Transaction exceeds specific value",
-      value: `More than Rp${formatAmount(rule.amount)}`,
-    },
-    ...(rule.criteria || []).map((value) => {
-      const option = approvalCriteriaOptions.find(
-        (item) => item.value === value
-      );
-      return {
-        label: option ? option.label : value,
-        value:
-          value === "overdue"
-            ? `${option.description} ${rule.overdueDays || 0} days`
-            : option.description,
-      };
-    }),
+    ...(rule.criteria || []).includes("specificValue")
+      ? [
+          {
+            label: "Transaction exceeds specific value",
+            value: `More than Rp${formatAmount(getRuleAmount(rule))}`,
+          },
+        ]
+      : [],
+    ...(rule.criteria || [])
+      .filter((value) => value !== "specificValue")
+      .map((value) => {
+        const option = approvalCriteriaOptions.find(
+          (item) => item.value === value
+        );
+
+        return {
+          label: option?.label || value,
+          value:
+            value === "overdue"
+              ? `${option?.description || "Overdue"} ${rule.overdueDays || 0} days`
+              : option?.description || value,
+        };
+      }),
   ];
 
   return (
@@ -899,7 +952,7 @@ function RuleDetailModal({ rule, onEdit, onClose }) {
                     className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-[13px] text-red-600 hover:bg-red-50"
                     onClick={() => {
                       setOpen(false);
-                      onClose();
+                      onDelete(rule);
                     }}
                   >
                     <Trash size={14} /> Delete
@@ -936,22 +989,54 @@ function RuleDetailModal({ rule, onEdit, onClose }) {
                     <td className="bg-slate-50/60 font-medium text-gray-700">
                       Description
                     </td>
-                    <td className={td}>{rule.description || "-"}</td>
+                    <td className={td}>{rule.description}</td>
                   </tr>
                   <tr>
                     <td className="bg-slate-50/60 font-medium text-gray-700">
                       Transaction type
                     </td>
-                    <td className={td}>{rule.transactionType}</td>
+                    <td className={td}>{titleCase(rule.transactionType)}</td>
                   </tr>
                   <tr>
                     <td className="bg-slate-50/60 font-medium text-gray-700">
                       Transaction created by
                     </td>
                     <td className={td}>
-                      {rule.createdBy === "all"
-                        ? "All users."
-                        : `Some users (${rule.createdByUsers.join(", ")})`}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {rule.createdBy === "all" ? (
+                          <span>All users.</span>
+                        ) : (
+                          (rule.createdByUsers || []).map((user) => (
+                            <span
+                              key={user}
+                              className="rounded-full border border-gray-200 bg-slate-50 px-2.5 py-0.5 text-[12px] text-gray-700"
+                            >
+                              {displayName(user)}
+                            </span>
+                          ))
+                        )}
+                        <div className="relative" ref={allUsersRef}>
+                          <button
+                            type="button"
+                            className="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-medium text-brand hover:underline"
+                            onClick={() => setShowAllUsers((current) => !current)}
+                          >
+                            View all
+                          </button>
+                          {showAllUsers && (
+                            <div className="absolute left-0 top-full z-30 mt-1 w-[220px] overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                              {dummyUsers.map((user) => (
+                                <p
+                                  key={user.id}
+                                  className="m-0 cursor-pointer px-4 py-2 text-[13px] text-gray-700 hover:bg-slate-50"
+                                >
+                                  {displayName(user.username)}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </td>
                   </tr>
                   <tr>
@@ -959,9 +1044,20 @@ function RuleDetailModal({ rule, onEdit, onClose }) {
                       Transaction created for
                     </td>
                     <td className={td}>
-                      {rule.createdFor === "all"
-                        ? "All customers."
-                        : `Some customers (${rule.createdForCustomers.join(", ")})`}
+                      {rule.createdFor === "all" ? (
+                        "All customers."
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {(rule.createdForCustomers || []).map((customer) => (
+                            <span
+                              key={customer}
+                              className="rounded-full border border-gray-200 bg-slate-50 px-2.5 py-0.5 text-[12px] text-gray-700"
+                            >
+                              {customer}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 </tbody>
@@ -975,22 +1071,29 @@ function RuleDetailModal({ rule, onEdit, onClose }) {
           <p className="m-0 mb-3 text-[13px] text-slate-500">
             Transaction conditions that require approval.
           </p>
-          <div className="mb-5 overflow-hidden rounded-lg border border-gray-200">
-            <div className={tableWrapper}>
-              <table className={tableBase}>
-                <tbody>
-                  {criteriaRows.map((row, index) => (
-                    <tr key={index}>
-                      <td className="w-[180px] bg-slate-50/60 font-medium text-gray-700">
-                        {row.label}
-                      </td>
-                      <td className={td}>{row.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {criteriaRows.length > 0 && (
+            <>
+              <p className="m-0 mb-2 text-[13px] font-medium text-slate-600">
+                Details
+              </p>
+              <div className="mb-5 overflow-hidden rounded-lg border border-gray-200">
+                <div className={tableWrapper}>
+                  <table className={tableBase}>
+                    <tbody>
+                      {criteriaRows.map((row, index) => (
+                        <tr key={index}>
+                          <td className="w-[180px] bg-slate-50/60 font-medium text-gray-700">
+                            {row.label}
+                          </td>
+                          <td className={td}>{row.value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
 
           <h4 className="m-0 mb-3 text-[15px] font-bold text-gray-900">
             Approval steps
@@ -1012,7 +1115,7 @@ function RuleDetailModal({ rule, onEdit, onClose }) {
                   Step {index + 1}
                 </span>
                 <p className="m-0 text-[13px] text-slate-600">
-                  {step.approvers.join(", ")}
+                  {step.approvers.map(displayName).join(", ")}
                 </p>
                 <p className="m-0 mt-1 text-[12px] text-slate-500">
                   {step.approverType === "All must approve"
@@ -1111,7 +1214,7 @@ export default function ApprovalRulesPage() {
     return matchType && matchName;
   });
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
@@ -1148,6 +1251,7 @@ export default function ApprovalRulesPage() {
   const handleDelete = () => {
     setRules((current) => current.filter((rule) => rule.id !== deletingRule.id));
     setDeletingRule(null);
+    setCurrentPage((page) => Math.max(1, page));
   };
 
   return (
@@ -1242,9 +1346,10 @@ export default function ApprovalRulesPage() {
                     </td>
                     <td className={td}>{rule.transactionType}</td>
                     <td className={td}>
-                      {rule.amount > 0
-                        ? `Rp ${formatAmount(rule.amount)}`
-                        : "Greater than Rp0,00"}
+                      {(rule.criteria || []).includes("specificValue") &&
+                      getRuleAmount(rule) > 0
+                        ? `Rp ${formatAmount(getRuleAmount(rule))}`
+                        : "-"}
                     </td>
                     <td className={td}>
                       {(rule.criteria || []).includes("maxReceivable")
@@ -1307,6 +1412,10 @@ export default function ApprovalRulesPage() {
             setEditingRule(rule);
             setShowForm(true);
           }}
+          onDelete={(rule) => {
+            setDetailRule(null);
+            setDeletingRule(rule);
+          }}
           onClose={() => setDetailRule(null)}
         />
       )}
@@ -1332,7 +1441,7 @@ export default function ApprovalRulesPage() {
       )}
 
       {viewingChangelog && (
-        <ChangelogModal onClose={() => setViewingChangelog(null)} />
+        <ChangelogModal rule={viewingChangelog} onClose={() => setViewingChangelog(null)} />
       )}
     </div>
   );

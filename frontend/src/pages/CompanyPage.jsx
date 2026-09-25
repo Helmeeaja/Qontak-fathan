@@ -76,10 +76,10 @@ function EditActions({ onCancel, onSave }) {
   return (
     <div className="col-span-full mt-[6px] flex justify-end gap-2.5">
       <button type="button" className={btnModalCancel} onClick={onCancel}>
-        Batal
+        Cancel
       </button>
       <button type="button" className={btnModalSubmit} onClick={onSave}>
-        Simpan
+        Save
       </button>
     </div>
   );
@@ -87,10 +87,10 @@ function EditActions({ onCancel, onSave }) {
 
 function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, onCancel, onSave }) {
   return (
-    <Card title="Informasi Perusahaan" editing={editing} onEdit={onEdit}>
+    <Card title="Company Information" editing={editing} onEdit={onEdit}>
       {editing ? (
         <div className="grid grid-cols-2 gap-[18px] max-md:grid-cols-1">
-          <EditField label="Nama perusahaan">
+          <EditField label="Company Name">
             <input
               className={inputBase}
               value={draft.name}
@@ -98,7 +98,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             />
           </EditField>
 
-          <EditField label="Email perusahaan">
+          <EditField label="Company Email">
             <input
               type="email"
               className={inputBase}
@@ -107,7 +107,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             />
           </EditField>
 
-          <EditField label="Nomor telepon">
+          <EditField label="Phone Number">
             <input
               className={inputBase}
               value={draft.phone}
@@ -115,7 +115,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             />
           </EditField>
 
-          <EditField label="Jenis industri">
+          <EditField label="Industry">
             <select
               className={selectBase}
               value={draft.industry}
@@ -129,18 +129,18 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             </select>
           </EditField>
 
-          {draft.industry === "Lainnya" && (
-            <EditField label="Sebutkan industri">
+          {draft.industry === "Other" && (
+            <EditField label="Specify Industry">
               <input
                 className={inputBase}
                 value={draft.industryOther}
-                placeholder="Tulis jenis industri usaha"
+                placeholder="Enter business industry"
                 onChange={(e) => setField("industryOther", e.target.value)}
               />
             </EditField>
           )}
 
-          <EditField label="Alamat perusahaan" full>
+          <EditField label="Company Address" full>
             <textarea
               rows="2"
               className={textareaBase}
@@ -155,7 +155,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             fields={["province", "city"]}
           />
 
-          <EditField label="Kode pos">
+          <EditField label="Postal Code">
             <input
               className={inputBase}
               value={draft.postalCode}
@@ -163,7 +163,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             />
           </EditField>
 
-          <EditField label="Ukuran perusahaan">
+          <EditField label="Company Size">
             <select
               className={selectBase}
               value={draft.companySize}
@@ -181,22 +181,22 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
-          <InfoField label="Nama perusahaan" value={company.name} />
-          <InfoField label="Email perusahaan" value={company.companyEmail} />
-          <InfoField label="Nomor telepon" value={company.phone} />
+          <InfoField label="Company Name" value={company.name} />
+          <InfoField label="Company Email" value={company.companyEmail} />
+          <InfoField label="Phone Number" value={company.phone} />
           <InfoField
-            label="Jenis industri"
+            label="Industry"
             value={
-              company.industry === "Lainnya"
-                ? company.industryOther || "Lainnya"
+              company.industry === "Other"
+                ? company.industryOther || "Other"
                 : company.industry
             }
           />
-          <InfoField label="Alamat perusahaan" value={company.address} full />
-          <InfoField label="Provinsi" value={company.province} />
-          <InfoField label="Kota/Kabupaten" value={company.city} />
-          <InfoField label="Kode pos" value={company.postalCode} />
-          <InfoField label="Ukuran perusahaan" value={company.companySize} />
+          <InfoField label="Company Address" value={company.address} full />
+          <InfoField label="Province" value={company.province} />
+          <InfoField label="City/Regency" value={company.city} />
+          <InfoField label="Postal Code" value={company.postalCode} />
+          <InfoField label="Company Size" value={company.companySize} />
         </div>
       )}
     </Card>
@@ -205,10 +205,10 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
 
 function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onSave }) {
   return (
-    <Card title="Informasi Rekening Bank" editing={editing} onEdit={onEdit}>
+    <Card title="Bank Account Information" editing={editing} onEdit={onEdit}>
       {editing ? (
         <div className="grid grid-cols-2 gap-[18px] max-md:grid-cols-1">
-          <EditField label="Nama bank">
+          <EditField label="Bank Name">
             <input
               className={inputBase}
               value={draft.bankName}
@@ -216,7 +216,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditField label="Kode SWIFT">
+          <EditField label="SWIFT Code">
             <input
               className={inputBase}
               value={draft.swiftCode}
@@ -224,7 +224,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditField label="Kantor cabang" full>
+          <EditField label="Branch Office" full>
             <input
               className={inputBase}
               value={draft.branchOffice}
@@ -232,7 +232,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditField label="Alamat cabang" full>
+          <EditField label="Branch Address" full>
             <input
               className={inputBase}
               value={draft.branchAddress}
@@ -240,7 +240,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditField label="Nomor rekening">
+          <EditField label="Account Number">
             <input
               className={inputBase}
               value={draft.accountNumber}
@@ -248,7 +248,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditField label="Nama pemilik rekening">
+          <EditField label="Account Holder Name">
             <input
               className={inputBase}
               value={draft.accountHolder}
@@ -260,12 +260,12 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
-          <InfoField label="Nama bank" value={company.bankName} />
-          <InfoField label="Kode SWIFT" value={company.swiftCode} />
-          <InfoField label="Kantor cabang" value={company.branchOffice} />
-          <InfoField label="Alamat cabang" value={company.branchAddress} full />
-          <InfoField label="Nomor rekening" value={company.accountNumber} />
-          <InfoField label="Nama pemilik rekening" value={company.accountHolder} />
+          <InfoField label="Bank Name" value={company.bankName} />
+          <InfoField label="SWIFT Code" value={company.swiftCode} />
+          <InfoField label="Branch Office" value={company.branchOffice} />
+          <InfoField label="Branch Address" value={company.branchAddress} full />
+          <InfoField label="Account Number" value={company.accountNumber} />
+          <InfoField label="Account Holder Name" value={company.accountHolder} />
         </div>
       )}
     </Card>
@@ -274,10 +274,10 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
 
 function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, onCancel, onSave }) {
   return (
-    <Card title="Informasi Lainnya" editing={editing} onEdit={onEdit}>
+    <Card title="Other Information" editing={editing} onEdit={onEdit}>
       {editing ? (
         <div className="grid grid-cols-2 gap-[18px] max-md:grid-cols-1">
-          <EditField label="Logo perusahaan">
+          <EditField label="Company Logo">
             <input
               type="file"
               accept="image/*"
@@ -287,16 +287,16 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             <div className="mt-2 flex items-center gap-2.5">
               <img
                 src={brandLogo}
-                alt="Logo perusahaan"
+                alt="Company Logo"
                 className="h-9 w-9 rounded-md object-contain"
               />
               <span className="text-sm text-slate-500">
-                {draft.logoName || "Belum ada logo"}
+                {draft.logoName || "No logo available"}
               </span>
             </div>
           </EditField>
 
-          <EditField label="Nomor fax">
+          <EditField label="Fax Number">
             <input
               className={inputBase}
               value={draft.fax}
@@ -304,7 +304,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
           </EditField>
 
-          <EditField label="Alamat pengiriman" full>
+          <EditField label="Shipping Address" full>
             <input
               className={inputBase}
               value={draft.shippingAddress}
@@ -312,7 +312,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
           </EditField>
 
-          <EditField label="Alamat penagihan" full>
+          <EditField label="Billing Address" full>
             <input
               className={inputBase}
               value={draft.billingAddress}
@@ -320,7 +320,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
           </EditField>
 
-          <EditField label="Nomor Pokok Wajib Pajak (NPWP)">
+          <EditField label="Taxpayer Identification Number (NPWP)">
             <input
               className={inputBase}
               value={draft.tin}
@@ -328,7 +328,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
           </EditField>
 
-          <EditField label="Situs web">
+          <EditField label="Website">
             <input
               className={inputBase}
               value={draft.website}
@@ -347,7 +347,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
 
           <div className="flex items-center">
             <CheckRow
-              label="Tampilkan logo di laporan"
+              label="Show logo on reports"
               checked={draft.showLogoInReport}
               onChange={() => setField("showLogoInReport", !draft.showLogoInReport)}
             />
@@ -362,7 +362,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             <div className="mt-1.5 flex items-center gap-2.5">
               <img
                 src={brandLogo}
-                alt="Logo perusahaan"
+                alt="Company Logo"
                 className="h-10 w-10 rounded-md object-contain"
               />
               <span className="text-sm font-medium text-gray-900">
@@ -371,16 +371,16 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             </div>
           </div>
 
-          <InfoField label="Alamat pengiriman" value={company.shippingAddress} full />
-          <InfoField label="Alamat penagihan" value={company.billingAddress} full />
-          <InfoField label="Nomor Pokok Wajib Pajak (NPWP)" value={company.tin} />
-          <InfoField label="Nomor fax" value={company.fax} />
-          <InfoField label="Situs web" value={company.website} />
+          <InfoField label="Shipping Address" value={company.shippingAddress} full />
+          <InfoField label="Billing Address" value={company.billingAddress} full />
+          <InfoField label="Taxpayer Identification Number (NPWP)" value={company.tin} />
+          <InfoField label="Fax Number" value={company.fax} />
+          <InfoField label="Website" value={company.website} />
           <InfoField label="Email" value={company.email} />
 
           <div className="col-span-full">
             <CheckRow
-              label="Tampilkan logo di laporan"
+              label="Show logo on reports"
               checked={company.showLogoInReport}
               disabled
               onChange={() => {}}
@@ -394,7 +394,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
 
 function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature, onCancel, onSave }) {
   return (
-    <Card title="Pengaturan Fitur Tambahan" editing={editing} onEdit={onEdit}>
+    <Card title="Additional Feature Settings" editing={editing} onEdit={onEdit}>
       <div className="grid grid-cols-2 gap-x-[18px] gap-y-3 max-md:grid-cols-1">
         {featureLabels.map(([key, label]) => (
           <CheckRow
@@ -409,7 +409,7 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
 
       {editing ? (
         <div className="mt-5 grid grid-cols-2 gap-[18px] max-md:grid-cols-1">
-          <EditField label="Mata uang dasar">
+          <EditField label="Base Currency">
             <select
               className={selectBase}
               value={draft.baseCurrency}
@@ -423,7 +423,7 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
             </select>
           </EditField>
 
-          <EditField label="Format mata uang">
+          <EditField label="Currency Format">
             <select
               className={selectBase}
               value={draft.currencyFormat}
@@ -441,8 +441,8 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
-          <InfoField label="Mata uang dasar" value={company.baseCurrency} />
-          <InfoField label="Format mata uang" value={company.currencyFormat} />
+          <InfoField label="Base Currency" value={company.baseCurrency} />
+          <InfoField label="Currency Format" value={company.currencyFormat} />
         </div>
       )}
     </Card>
@@ -491,7 +491,7 @@ export default function CompanyPage() {
       <div className="mb-6">
         <h1 className="m-0 text-[28px] font-bold text-gray-900">Company</h1>
         <p className="m-0 mt-1.5 text-slate-500">
-          Kelola informasi perusahaan QontakSales.
+          Manage QontakSales company information.
         </p>
       </div>
 

@@ -222,3 +222,11 @@ node_modules/
 dist/
 build/
 .env.local
+
+# Scratch / debug / verification scripts lokal (bukan bagian dari source)
+frontend/.dbg2.cjs
+frontend/dbg*.cjs
+frontend/dbg-subassembly.cjs
+frontend/verify-*.cjs
+frontend/.verify-*.cjs
+frontend/.iconstub/
