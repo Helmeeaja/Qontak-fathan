@@ -2,7 +2,7 @@
 
 Versi dasar QontakSales yang dipersiapkan untuk pengembangan berikutnya.
 
-## Fitur saat ini
+## Fitur dan Halaman saat ini
 - Login dengan email + password (JWT)
 - Register perusahaan + akun manager
 - Dashboard statistik user/agent/manager
