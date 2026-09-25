@@ -17,6 +17,11 @@ Versi dasar QontakSales yang dipersiapkan untuk pengembangan berikutnya.
 - Products
 - Productions
 - Template
+- Custom Fields
+- Account Mapping
+- Billing
+- Approval Rules
+- Tagging Rules
 
 ## Backend
 Django REST Framework + PostgreSQL + JWT
@@ -87,5 +92,3 @@ File penyimpan data dummy:
 - `frontend/src/data/accountMapping.js` — Account Mapping
 - `frontend/src/components/data/roleData.js` — User Management
 
-Catatan: file scratch/debug lokal (`frontend/verify-*.cjs`, `frontend/dbg*.cjs`,
-`frontend/.iconstub/`) diabaikan oleh git dan tidak ikut dicommit.
