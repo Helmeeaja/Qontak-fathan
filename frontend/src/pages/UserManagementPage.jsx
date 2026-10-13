@@ -14,7 +14,6 @@ import {
   btnSecondary
 } from "@/components/ui/styles";
 import {
-  dummyUsers,
   statusLabels,
   statusBadgeClass,
   typeLabels,
@@ -23,6 +22,7 @@ import {
   customRoleFeatures,
   inviteRoles,
 } from "@/components/data/roleData";
+import api from "../services/api";
 
 const PAGE_SIZE = 10;
 
@@ -105,11 +105,12 @@ function TransferOwnershipModal({ onClose }) {
   );
 }
 
-function AddCustomRoleModal({ onClose }) {
+function AddCustomRoleModal({ onClose, onSaved }) {
   const [roleName, setRoleName] = useState("");
   const [roleDescription, setRoleDescription] = useState("");
   const [expandedFeatures, setExpandedFeatures] = useState([]);
   const [authorityCells, setAuthorityCells] = useState({});
+  const [saving, setSaving] = useState(false);
 
   const enabledColumns = (feature) =>
     feature.viewOnly ? ["View"] : authorityColumns;
@@ -193,6 +194,51 @@ function AddCustomRoleModal({ onClose }) {
         feature.subs.every((sub) => authorityCells[cellKey(feature.name, sub, column)])
       )
     );
+  };
+
+  const columnToApi = { View: "see", "Create/Add": "create", Edit: "edit", Delete: "can_delete" };
+
+  const buildPayload = () => {
+    const authorities = [];
+    customRoleFeatures.forEach((feature) => {
+      feature.subs.forEach((sub) => {
+        const entry = { feature: feature.name, sub_feature: sub };
+        enabledColumns(feature).forEach((column) => {
+          entry[columnToApi[column]] = !!authorityCells[cellKey(feature.name, sub, column)];
+        });
+        authorities.push(entry);
+      });
+    });
+    return {
+      code: roleName.trim().toLowerCase().replace(/\s+/g, "_"),
+      name: roleName.trim(),
+      description: roleDescription,
+      authorities,
+    };
+  };
+
+  const handleSave = async () => {
+    if (roleName.trim() === "") {
+      alert("Role name wajib diisi.");
+      return;
+    }
+    try {
+      setSaving(true);
+      await api.post("/roles/", buildPayload());
+      onSaved();
+    } catch (error) {
+      console.error(error);
+      const detail = error.response?.data;
+      const message =
+        detail && typeof detail === "object"
+          ? Object.entries(detail)
+              .map(([field, errs]) => field + ": " + errs)
+              .join("\n")
+          : "Gagal menyimpan role.";
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -314,9 +360,10 @@ function AddCustomRoleModal({ onClose }) {
           <button
             type="button"
             className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border-0 bg-brand px-[15px] py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={onClose}
+            disabled={saving || roleName.trim() === ""}
+            onClick={handleSave}
           >
-            Save
+            {saving ? "Menyimpan..." : "Save"}
           </button>
         </div>
       </div>
@@ -405,16 +452,59 @@ function FeatureAuthorityRows({
   );
 }
 
-function InviteUserModal({ onClose, onAddCustomRole }) {
+const HOUR_OPTIONS = [
+  "00:00","01:00","02:00","03:00","04:00","05:00","06:00","07:00",
+  "08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00",
+  "16:00","17:00","18:00","19:00","20:00","21:00","22:00","23:00",
+];
+
+const DAY_OPTIONS = [
+  { key: "Monday", label: "Senin" },
+  { key: "Tuesday", label: "Selasa" },
+  { key: "Wednesday", label: "Rabu" },
+  { key: "Thursday", label: "Kamis" },
+  { key: "Friday", label: "Jumat" },
+  { key: "Saturday", label: "Sabtu" },
+  { key: "Sunday", label: "Minggu" },
+];
+
+function InviteUserModal({ onClose, onAddCustomRole, onInvite }) {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [accessTimeLimits, setAccessTimeLimits] = useState(false);
+  const [accessDayType, setAccessDayType] = useState("Senin - Jumat");
+  const [accessStartHour, setAccessStartHour] = useState("08:00");
+  const [accessEndHour, setAccessEndHour] = useState("17:00");
+  const [accessTimeError, setAccessTimeError] = useState("");
+  const [customDays, setCustomDays] = useState({});
+  const [customHours, setCustomHours] = useState({});
   const [roleTab, setRoleTab] = useState("existing");
   const [expandedRoles, setExpandedRoles] = useState([]);
   const [checkedRoles, setCheckedRoles] = useState({});
+  const [checkedCustomRoles, setCheckedCustomRoles] = useState([]);
+  const [customRoles, setCustomRoles] = useState([]);
   const [authorityCells, setAuthorityCells] = useState({});
   const [restrictionCells, setRestrictionCells] = useState({});
   const [listManager, setListManager] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/roles/")
+      .then((response) => setCustomRoles(response.data))
+      .catch(() => {});
+  }, []);
+
+  const validateAccessTime = (dayType, start, end, days, hours) => {
+    const ranges =
+      dayType === "Custom"
+        ? DAY_OPTIONS.filter((d) => days[d.key]).map(
+            (d) =>
+              (hours[d.key]?.start ?? "08:00") + "-" + (hours[d.key]?.end ?? "17:00")
+          )
+        : [start + "-" + end];
+    const invalid = ranges.filter((r) => r.split("-")[0] >= r.split("-")[1]);
+    return invalid.length > 0 ? "Jam selesai harus setelah jam mulai" : "";
+  };
 
   const toggleExpand = (roleKey) => {
     setExpandedRoles((prev) =>
@@ -427,6 +517,20 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
   const selectedRoleNames = inviteRoles
     .filter((role) => checkedRoles[role.key])
     .map((role) => role.name);
+
+  const selectedCustomRoleNames = customRoles
+    .filter((role) => checkedCustomRoles.includes(role.id))
+    .map((role) => role.name);
+
+  const ultimateWithListManager = !!checkedRoles.ultimate && listManager;
+  const ultimateSelected = !!checkedRoles.ultimate;
+
+  useEffect(() => {
+    if (ultimateWithListManager) {
+      setAccessTimeLimits(false);
+      setAccessTimeError("");
+    }
+  }, [ultimateWithListManager]);
 
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/55 p-5">
@@ -472,12 +576,20 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
             </div>
           </div>
 
-          <label className="mb-1 flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold text-gray-700">
+          <label
+            className={
+              "mb-1 flex items-center gap-2.5 text-[13px] font-semibold " +
+              (ultimateWithListManager
+                ? "cursor-not-allowed text-slate-300"
+                : "cursor-pointer text-gray-700")
+            }
+          >
             <input
               type="checkbox"
               name="applyAccessTimeLimits"
               className="h-4 w-4 accent-brand"
               checked={accessTimeLimits}
+              disabled={ultimateWithListManager}
               onChange={(event) => setAccessTimeLimits(event.target.checked)}
             />
             Apply access time limits
@@ -486,6 +598,168 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
             Can be applied to all roles except Owner and Ultimate with the
             ticked List Manager.
           </p>
+
+          {accessTimeLimits && (
+            <div className="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="grid grid-cols-3 gap-4 max-md:grid-cols-1">
+                <div>
+                  <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+                    Hari
+                  </label>
+                  <select
+                    name="accessDayType"
+                    value={accessDayType}
+                    onChange={(event) => setAccessDayType(event.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                  >
+                    <option value="Senin - Jumat">Senin - Jumat</option>
+                    <option value="Senin - Sabtu">Senin - Sabtu</option>
+                    <option value="Custom">Custom</option>
+                  </select>
+                </div>
+                {accessDayType !== "Custom" && (
+                  <>
+                    <div>
+                      <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+                        Jam mulai
+                      </label>
+                      <select
+                        name="accessStartHour"
+                        value={accessStartHour}
+                        onChange={(event) =>
+                          setAccessStartHour(event.target.value)
+                        }
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                      >
+                        {HOUR_OPTIONS.map((hour) => (
+                          <option key={hour} value={hour}>
+                            {hour}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-[7px] block text-[13px] font-semibold text-gray-700">
+                        Jam selesai
+                      </label>
+                      <select
+                        name="accessEndHour"
+                        value={accessEndHour}
+                        onChange={(event) => {
+                          setAccessEndHour(event.target.value);
+                          setAccessTimeError(
+                            validateAccessTime(
+                              accessDayType,
+                              accessStartHour,
+                              event.target.value,
+                              customDays,
+                              customHours
+                            )
+                          );
+                        }}
+                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-brand focus:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]"
+                      >
+                        {HOUR_OPTIONS.map((hour) => (
+                          <option key={hour} value={hour}>
+                            {hour}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+              {accessDayType !== "Custom" && (
+                <p className="m-0 mt-2 text-xs text-slate-400">
+                  Waktu dalam GMT+7
+                </p>
+              )}
+              {accessDayType === "Custom" && (
+                <div className="mt-4">
+                  {DAY_OPTIONS.map((day) => (
+                    <div
+                      key={day.key}
+                      className="grid grid-cols-[140px_1fr_1fr] items-center gap-4 border-t border-slate-200 py-2.5 first:border-t-0 max-md:grid-cols-1"
+                    >
+                      <label className="flex cursor-pointer items-center gap-2.5 text-[13px] font-semibold text-gray-700">
+                        <input
+                          type="checkbox"
+                          name={`custom-day-${day.key}`}
+                          className="h-4 w-4 accent-brand"
+                          checked={!!customDays[day.key]}
+                          onChange={(event) =>
+                            setCustomDays((prev) => ({
+                              ...prev,
+                              [day.key]: event.target.checked,
+                            }))
+                          }
+                        />
+                        {day.label}
+                      </label>
+                      <select
+                        name={`startHour-${day.key}`}
+                        value={customHours[day.key]?.start ?? "08:00"}
+                        onChange={(event) =>
+                          setCustomHours((prev) => ({
+                            ...prev,
+                            [day.key]: {
+                              start: event.target.value,
+                              end: prev[day.key]?.end ?? "17:00",
+                            },
+                          }))
+                        }
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand"
+                      >
+                        {HOUR_OPTIONS.map((hour) => (
+                          <option key={hour} value={hour}>
+                            {hour}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        name={`endHour-${day.key}`}
+                        value={customHours[day.key]?.end ?? "17:00"}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setCustomHours((prev) => {
+                            const next = {
+                              ...prev,
+                              [day.key]: {
+                                start: prev[day.key]?.start ?? "08:00",
+                                end: value,
+                              },
+                            };
+                            setAccessTimeError(
+                              validateAccessTime(
+                                accessDayType,
+                                accessStartHour,
+                                accessEndHour,
+                                customDays,
+                                next
+                              )
+                            );
+                            return next;
+                          });
+                        }}
+                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand"
+                      >
+                        {HOUR_OPTIONS.map((hour) => (
+                          <option key={hour} value={hour}>
+                            {hour}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {accessTimeError && (
+                <p className="m-0 mt-2 text-xs font-semibold text-red-600">
+                  {accessTimeError}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="mb-2 text-[13px] font-bold text-gray-900">
             Role <span className="ml-[3px] text-red-600">*</span>
@@ -521,21 +795,67 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
 
           {roleTab === "custom" ? (
             <div>
-              <div className="mb-5 mt-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 px-4 py-12 text-center">
-                <div className="text-sm font-semibold text-slate-700">
-                  Custom roles will appear here
+              {customRoles.length > 0 ? (
+                <div className="mb-5 mt-4 border-b border-slate-200">
+                  {ultimateSelected && (
+                    <p className="m-0 border-t border-slate-100 py-2 text-xs leading-relaxed text-slate-400 first:border-t-0">
+                      Custom roles cannot be selected when the Ultimate role is
+                      selected. You must choose one of these to prevent role
+                      conflicts.
+                    </p>
+                  )}
+                  {customRoles.map((role) => (
+                    <label
+                      key={role.id}
+                      className={
+                        "flex items-center gap-2.5 border-t border-slate-100 py-2.5 first:border-t-0 " +
+                        (ultimateSelected
+                          ? "cursor-not-allowed"
+                          : "cursor-pointer")
+                      }
+                    >
+                      <input
+                        type="checkbox"
+                        name={`custom-role-${role.id}`}
+                        className="h-4 w-4 accent-brand"
+                        checked={checkedCustomRoles.includes(role.id)}
+                        disabled={ultimateSelected}
+                        onChange={(event) =>
+                          setCheckedCustomRoles((prev) =>
+                            event.target.checked
+                              ? [...prev, role.id]
+                              : prev.filter((id) => id !== role.id)
+                          )
+                        }
+                      />
+                      <span
+                        className={
+                          "text-sm font-bold " +
+                          (ultimateSelected ? "text-slate-300" : "text-slate-900")
+                        }
+                      >
+                        {role.name}
+                      </span>
+                    </label>
+                  ))}
                 </div>
-                <p className="m-0 text-[13px] text-slate-400">
-                  Add new custom role from Add custom role button.
-                </p>
-                <button
-                  type="button"
-                  className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-slate-50"
-                  onClick={onAddCustomRole}
-                >
-                  Add custom role
-                </button>
-              </div>
+              ) : (
+                <div className="mb-5 mt-4 flex flex-col items-center gap-3 rounded-lg border border-dashed border-slate-300 px-4 py-12 text-center">
+                  <div className="text-sm font-semibold text-slate-700">
+                    Custom roles will appear here
+                  </div>
+                  <p className="m-0 text-[13px] text-slate-400">
+                    Add new custom role from Add custom role button.
+                  </p>
+                  <button
+                    type="button"
+                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-slate-50"
+                    onClick={onAddCustomRole}
+                  >
+                    Add custom role
+                  </button>
+                </div>
+              )}
               <div className="mb-2 rounded-lg bg-slate-50 px-4 py-3">
                 <div className="mb-1.5 text-[13px] font-bold text-gray-900">
                   Terms for selecting roles
@@ -686,7 +1006,15 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
                     <div className="mb-1.5 mt-4 text-[13px] font-semibold text-slate-600">
                       Custom
                     </div>
-                    <div className="text-[13px] text-slate-400">-</div>
+                    {selectedCustomRoleNames.length > 0 ? (
+                      <ul className="m-0 list-disc space-y-1 pl-5 text-[13px] text-slate-700">
+                        {selectedCustomRoleNames.map((roleNameItem) => (
+                          <li key={roleNameItem}>{roleNameItem}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="text-[13px] text-slate-400">-</div>
+                    )}
                   </div>
 
                   <div className="rounded-lg bg-slate-50 px-4 py-3">
@@ -721,7 +1049,42 @@ function InviteUserModal({ onClose, onAddCustomRole }) {
           <button
             type="button"
             className="inline-flex cursor-pointer items-center justify-center gap-[7px] rounded-lg border-0 bg-brand px-[15px] py-[9px] text-[13px] font-semibold text-white transition-colors hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={onClose}
+            disabled={userName.trim() === "" || email.trim() === ""}
+            onClick={() => {
+              if (accessTimeLimits) {
+                const error = validateAccessTime(
+                  accessDayType,
+                  accessStartHour,
+                  accessEndHour,
+                  customDays,
+                  customHours
+                );
+                if (error) {
+                  setAccessTimeError(error);
+                  return;
+                }
+              }
+              onInvite({
+                username: userName.trim(),
+                email: email.trim(),
+                type: "member",
+                access_time_limit: accessTimeLimits
+                  ? accessDayType === "Custom"
+                    ? DAY_OPTIONS.filter(
+                        (day) => customDays[day.key]
+                      ).map(
+                        (day) =>
+                          day.key +
+                          " " +
+                          (customHours[day.key]?.start ?? "08:00") +
+                          "-" +
+                          (customHours[day.key]?.end ?? "17:00")
+                      ).join(", ")
+                    : accessDayType + " " + accessStartHour + "-" + accessEndHour
+                  : "",
+                roles: checkedCustomRoles,
+              });
+            }}
           >
             Invite
           </button>
@@ -839,10 +1202,60 @@ export default function UserManagementPage() {
   const [transferModalUser, setTransferModalUser] = useState(null);
   const [customRoleModalOpen, setCustomRoleModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [roles, setRoles] = useState([]);
+
+  const loadRoles = async () => {
+    try {
+      const response = await api.get("/roles/");
+      setRoles(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    setUsers(dummyUsers);
+    loadRoles();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const response = await api.get("/members/");
+      setUsers(
+        response.data.map((user) => ({
+          id: user.id,
+          username: user.username,
+          accessLimit: user.access_time_limit || "",
+          status: user.status,
+          type: user.type,
+        }))
+      );
+    } catch (error) {
+      console.error(error);
+      alert("Gagal memuat data user.");
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const handleInvite = async (payload) => {
+    try {
+      await api.post("/members/", payload);
+      await loadUsers();
+      setInviteModalOpen(false);
+    } catch (error) {
+      console.error(error);
+      const detail = error.response?.data;
+      const message =
+        detail && typeof detail === "object"
+          ? Object.entries(detail)
+              .map(([field, errs]) => field + ": " + errs)
+              .join("\n")
+          : "Gagal mengundang user.";
+      alert(message);
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesType =
@@ -968,16 +1381,49 @@ export default function UserManagementPage() {
         </div>
       ) : (
         <div className="mb-6">
-          <div className="flex w-[280px] items-center gap-2 self-end rounded-lg border border-slate-300 px-3 py-[9px] max-md:w-auto ">
-        <MagnifyingGlass size={19} className="shrink-0 text-slate-500" />
-        <input
-          placeholder="Cari role..."
-          className="w-full border-0 outline-none"
-        />
-      </div>
-      <div className="p-10">
-          <p>List role akan ditampilkan disini</p>
-      </div>
+          <div className="mb-5 flex w-[280px] items-center gap-2 self-end rounded-lg border border-slate-300 px-3 py-[9px] max-md:w-auto">
+            <MagnifyingGlass size={19} className="shrink-0 text-slate-500" />
+            <input
+              placeholder="Cari role..."
+              className="w-full border-0 outline-none"
+            />
+          </div>
+          {roles.length > 0 ? (
+            <div className={`${tableCard} p-6`}>
+              <div className={tableWrapper}>
+                <table className={tableBase}>
+                  <thead>
+                    <tr>
+                      <th className={`${th} w-[280px]`}>Role name</th>
+                      <th className={th}>Description</th>
+                      <th className={`${th} w-[140px]`}>Authority</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {roles.map((role) => (
+                      <tr key={role.id} className={trHover}>
+                        <td className={td}>
+                          <span className="font-medium text-gray-900">
+                            {role.name}
+                          </span>
+                        </td>
+                        <td className={td}>{role.description || "-"}</td>
+                        <td className={td}>
+                          {role.authorities && role.authorities.length > 0
+                            ? role.authorities.length + " authority"
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="p-10">
+              <p>List role akan ditampilkan disini</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -988,7 +1434,13 @@ export default function UserManagementPage() {
       )}
 
       {customRoleModalOpen && (
-        <AddCustomRoleModal onClose={() => setCustomRoleModalOpen(false)} />
+        <AddCustomRoleModal
+          onClose={() => setCustomRoleModalOpen(false)}
+          onSaved={() => {
+            setCustomRoleModalOpen(false);
+            loadRoles();
+          }}
+        />
       )}
 
       {inviteModalOpen && (
@@ -998,6 +1450,7 @@ export default function UserManagementPage() {
             setInviteModalOpen(false);
             setCustomRoleModalOpen(true);
           }}
+          onInvite={handleInvite}
         />
       )}
     </div>

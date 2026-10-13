@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "qontak_sales.apps.accounts",
     "qontak_sales.apps.coa",
     "qontak_sales.apps.customers",
+    "qontak_sales.apps.regions",
 ]
 
 MIDDLEWARE = [

@@ -37,8 +37,14 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
+python manage.py seed_wilayah
 python manage.py runserver
 ```
+
+Catatan: `python manage.py seed_wilayah` wajib dijalankan sekali untuk mengisi data
+provinsi/kota/kecamatan/kelurahan + kode pos. Sumber seed-nya ada di
+`frontend/public/data/` (provinsi.json, kecamatan.json, kelurahan/*.json) —
+file JSON itu adalah biji seed, jangan dihapus meskipun tidak dipakai saat runtime.
 
 ### Frontend
 ```bash

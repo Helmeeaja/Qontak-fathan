@@ -1,41 +1,3 @@
-export const initialCompany = {
-  name: "PT Qontak Sejahtera",
-  companyEmail: "admin@qontak.com",
-  address: "Jl. Gatot Subroto No. 177, Jakarta Selatan",
-  phone: "021-5050-1000",
-  province: "DKI Jakarta",
-  city: "Kota Jakarta Selatan",
-  postalCode: "12870",
-  industry: "Teknologi - Startup dan Perangkat Lunak",
-  industryOther: "",
-  companySize: "101-300",
-  bankName: "Bank Central Asia (BCA)",
-  branchOffice: "KCP Jakarta Gatot Subroto",
-  branchAddress: "Jl. Gatot Subroto No. 1, Jakarta Pusat",
-  accountNumber: "1234567890",
-  accountHolder: "PT Qontak Sejahtera",
-  swiftCode: "CENAIDJA",
-  logoName: "brand.png",
-  shippingAddress: "Gudang 3, Kawasan Industri Pulogadung, Jakarta Timur",
-  billingAddress: "Jl. Gatot Subroto No. 177, Jakarta Selatan",
-  tin: "01.234.567.8-091.000",
-  fax: "021-5050-1001",
-  website: "https://www.qontak.com",
-  email: "cs@qontak.com",
-  showLogoInReport: true,
-  features: {
-    approval: true,
-    multipleWithholding: false,
-    performanceSummary: true,
-    taxInclusive: false,
-    transactionTag: true,
-    multicurrency: false,
-  },
-  
-  baseCurrency: "IDR-Indonesian Rupiah",
-  currencyFormat: "Once with decimals",
-};
-
 export const featureLabels = [
   ["approval", "Persetujuan"],
   ["multipleWithholding", "Pemotongan berganda"],
@@ -46,11 +8,18 @@ export const featureLabels = [
 ];
 
 export const currencyFormatOptions = [
-  "Once with decimals",
-  "Once",
-  "In thousands",
-  "In millions",
+  "with_decimal",
+  "no_decimal",
+  "thousands",
+  "millions",
 ];
+
+export const currencyFormatLabels = {
+  with_decimal: "Once with decimals",
+  no_decimal: "Once",
+  thousands: "In thousands",
+  millions: "In millions",
+};
 
 export const companySizeOptions = ["0-50", "51-100", "101-300", "301-2000", ">2000"];
 
@@ -78,27 +47,50 @@ export const industryOptions = [
 ];
 
 export const baseCurrencyOptions = [
-  "IDR-Indonesian Rupiah",
-  "USD-United States Dollar",
-  "SGD-Singapore Dollar",
-  "MYR-Malaysian Ringgit",
-  "EUR-Euro",
-  "JPY-Japanese Yen",
-  "CNY-Chinese Yuan",
-  "HKD-Hong Kong Dollar",
-  "KRW-South Korean Won",
-  "INR-Indian Rupee",
-  "AUD-Australian Dollar",
-  "NZD-New Zealand Dollar",
-  "GBP-British Pound Sterling",
-  "CHF-Swiss Franc",
-  "CAD-Canadian Dollar",
-  "AED-UAE Dirham",
-  "SAR-Saudi Riyal",
-  "THB-Thai Baht",
-  "PHP-Philippine Peso",
-  "VND-Vietnamese Dong",
+  "IDR",
+  "USD",
+  "SGD",
+  "MYR",
+  "EUR",
+  "JPY",
+  "CNY",
+  "HKD",
+  "KRW",
+  "INR",
+  "AUD",
+  "NZD",
+  "GBP",
+  "CHF",
+  "CAD",
+  "AED",
+  "SAR",
+  "THB",
+  "PHP",
+  "VND",
 ];
+
+export const baseCurrencyLabels = {
+  IDR: "IDR - Indonesian Rupiah",
+  USD: "USD - United States Dollar",
+  SGD: "SGD - Singapore Dollar",
+  MYR: "MYR - Malaysian Ringgit",
+  EUR: "EUR - Euro",
+  JPY: "JPY - Japanese Yen",
+  CNY: "CNY - Chinese Yuan",
+  HKD: "HKD - Hong Kong Dollar",
+  KRW: "KRW - South Korean Won",
+  INR: "INR - Indian Rupee",
+  AUD: "AUD - Australian Dollar",
+  NZD: "NZD - New Zealand Dollar",
+  GBP: "GBP - British Pound Sterling",
+  CHF: "CHF - Swiss Franc",
+  CAD: "CAD - Canadian Dollar",
+  AED: "AED - UAE Dirham",
+  SAR: "SAR - Saudi Riyal",
+  THB: "THB - Thai Baht",
+  PHP: "PHP - Philippine Peso",
+  VND: "VND - Vietnamese Dong",
+};
 
 
 export const dummyUsers = [

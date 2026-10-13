@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pencil } from "@phosphor-icons/react";
 import {
   btnModalCancel,
@@ -6,19 +6,91 @@ import {
   btnSecondary,
   formLabel,
   inputBase,
+  pageSpinner,
   selectBase,
   textareaBase,
 } from "@/components/ui/styles";
 import RegionSelects from "@/components/ui/RegionSelects";
 import brandLogo from "@/assets/brand.png";
 import {
+  baseCurrencyLabels,
   baseCurrencyOptions,
   companySizeOptions,
+  currencyFormatLabels,
   currencyFormatOptions,
   featureLabels,
   industryOptions,
-  initialCompany,
 } from "@/data/dummy";
+import api from "../services/api";
+
+const emptyCompany = {
+  name: "",
+  companyEmail: "",
+  phone: "",
+  industry: "",
+  industryOther: "",
+  address: "",
+  province: "",
+  city: "",
+  postalCode: "",
+  companySize: "",
+  bankName: "",
+  swiftCode: "",
+  branchOffice: "",
+  branchAddress: "",
+  accountNumber: "",
+  accountHolder: "",
+  logo: null,
+  fax: "",
+  shippingAddress: "",
+  billingAddress: "",
+  tin: "",
+  website: "",
+  email: "",
+  showLogoInReport: false,
+  features: {
+    approval: false,
+    multipleWithholding: false,
+    performanceSummary: false,
+    taxInclusive: false,
+    transactionTag: false,
+    multicurrency: false,
+  },
+  baseCurrency: "IDR",
+  currencyFormat: "",
+};
+
+const snakeToCamel = (data) => {
+  const camel = (key) => key.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+  const out = {};
+  Object.entries(data).forEach(([key, value]) => {
+    out[camel(key)] = value;
+  });
+  return out;
+};
+
+const serverToClient = (data) => {
+  const company = snakeToCamel(data);
+  company.features = {
+    approval: data.feature_approval,
+    multipleWithholding: data.feature_multiple_withholding,
+    performanceSummary: data.feature_performance_summary,
+    taxInclusive: data.feature_tax_inclusive,
+    transactionTag: data.feature_transaction_tag,
+    multicurrency: data.feature_multicurrency,
+  };
+  company.logo = data.logo_url;
+  delete company.featureApproval;
+  delete company.featureMultipleWithholding;
+  delete company.featurePerformanceSummary;
+  delete company.featureTaxInclusive;
+  delete company.featureTransactionTag;
+  delete company.featureMulticurrency;
+  delete company.createdAt;
+  delete company.updatedAt;
+  delete company.id;
+  return company;
+};
 
 function Card({ title, editing, onEdit, children }) {
   return (
@@ -72,20 +144,20 @@ function CheckRow({ label, checked, disabled, onChange }) {
   );
 }
 
-function EditActions({ onCancel, onSave }) {
+function EditActions({ onCancel, onSave, saving }) {
   return (
     <div className="col-span-full mt-[6px] flex justify-end gap-2.5">
-      <button type="button" className={btnModalCancel} onClick={onCancel}>
+      <button type="button" className={btnModalCancel} onClick={onCancel} disabled={saving}>
         Cancel
       </button>
-      <button type="button" className={btnModalSubmit} onClick={onSave}>
-        Save
+      <button type="button" className={btnModalSubmit} onClick={onSave} disabled={saving}>
+        {saving ? "Menyimpan..." : "Save"}
       </button>
     </div>
   );
 }
 
-function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, onCancel, onSave }) {
+function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, onCancel, onSave, saving, postalCodes }) {
   return (
     <Card title="Company Information" editing={editing} onEdit={onEdit}>
       {editing ? (
@@ -156,19 +228,34 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
           />
 
           <EditField label="Postal Code">
-            <input
-              className={inputBase}
+            <select
+              className={selectBase}
               value={draft.postalCode}
+              disabled={!draft.city}
               onChange={(e) => setField("postalCode", e.target.value)}
-            />
+            >
+              <option value="">{draft.city ? "Pilih kode pos" : "Pilih kota dulu"}</option>
+              {draft.postalCode &&
+                !postalCodes.includes(draft.postalCode) && (
+                  <option value={draft.postalCode}>{draft.postalCode}</option>
+                )}
+              {postalCodes.map((code) => (
+                <option key={code} value={code}>
+                  {code}
+                </option>
+              ))}
+            </select>
           </EditField>
 
           <EditField label="Company Size">
             <select
               className={selectBase}
-              value={draft.companySize}
+              value={companySizeOptions.includes(draft.companySize) ? draft.companySize : ""}
               onChange={(e) => setField("companySize", e.target.value)}
             >
+              {!companySizeOptions.includes(draft.companySize) && (
+                <option value={draft.companySize}>{draft.companySize}</option>
+              )}
               {companySizeOptions.map((size) => (
                 <option key={size} value={size}>
                   {size}
@@ -177,7 +264,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
             </select>
           </EditField>
 
-          <EditActions onCancel={onCancel} onSave={onSave} />
+          <EditActions onCancel={onCancel} onSave={onSave} saving={saving} />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
@@ -203,7 +290,7 @@ function CompanyInfoCard({ company, draft, editing, onEdit, setField, setDraft, 
   );
 }
 
-function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onSave }) {
+function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onSave, saving }) {
   return (
     <Card title="Bank Account Information" editing={editing} onEdit={onEdit}>
       {editing ? (
@@ -256,7 +343,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
             />
           </EditField>
 
-          <EditActions onCancel={onCancel} onSave={onSave} />
+          <EditActions onCancel={onCancel} onSave={onSave} saving={saving} />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
@@ -272,7 +359,7 @@ function BankInfoCard({ company, draft, editing, onEdit, setField, onCancel, onS
   );
 }
 
-function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, onCancel, onSave }) {
+function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, logoPreview, onCancel, onSave, saving }) {
   return (
     <Card title="Other Information" editing={editing} onEdit={onEdit}>
       {editing ? (
@@ -286,12 +373,12 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
             <div className="mt-2 flex items-center gap-2.5">
               <img
-                src={brandLogo}
+                src={logoPreview || brandLogo}
                 alt="Company Logo"
                 className="h-9 w-9 rounded-md object-contain"
               />
               <span className="text-sm text-slate-500">
-                {draft.logoName || "No logo available"}
+                {draft.logoName || (logoPreview ? "Logo tersimpan" : "No logo available")}
               </span>
             </div>
           </EditField>
@@ -353,21 +440,22 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
             />
           </div>
 
-          <EditActions onCancel={onCancel} onSave={onSave} />
+          <EditActions onCancel={onCancel} onSave={onSave} saving={saving} />
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
           <div className="col-span-full">
             <div className="text-[13px] text-slate-500">Company logo</div>
             <div className="mt-1.5 flex items-center gap-2.5">
-              <img
-                src={brandLogo}
-                alt="Company Logo"
-                className="h-10 w-10 rounded-md object-contain"
-              />
-              <span className="text-sm font-medium text-gray-900">
-                {company.logoName || "-"}
-              </span>
+              {company.logo ? (
+                <img
+                  src={company.logo}
+                  alt="Company Logo"
+                  className="h-10 w-10 rounded-md object-contain"
+                />
+              ) : (
+                <span className="text-sm font-medium text-gray-900">-</span>
+              )}
             </div>
           </div>
 
@@ -392,7 +480,7 @@ function OtherInfoCard({ company, draft, editing, onEdit, setField, onLogoPick, 
   );
 }
 
-function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature, onCancel, onSave }) {
+function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature, onCancel, onSave, saving }) {
   return (
     <Card title="Additional Feature Settings" editing={editing} onEdit={onEdit}>
       <div className="grid grid-cols-2 gap-x-[18px] gap-y-3 max-md:grid-cols-1">
@@ -417,7 +505,7 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
             >
               {baseCurrencyOptions.map((currency) => (
                 <option key={currency} value={currency}>
-                  {currency}
+                  {baseCurrencyLabels[currency]}
                 </option>
               ))}
             </select>
@@ -429,20 +517,27 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
               value={draft.currencyFormat}
               onChange={(e) => setField("currencyFormat", e.target.value)}
             >
+              <option value="">Pilih format</option>
               {currencyFormatOptions.map((format) => (
                 <option key={format} value={format}>
-                  {format}
+                  {currencyFormatLabels[format]}
                 </option>
               ))}
             </select>
           </EditField>
 
-          <EditActions onCancel={onCancel} onSave={onSave} />
+          <EditActions onCancel={onCancel} onSave={onSave} saving={saving} />
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-x-[18px] gap-y-4 max-md:grid-cols-1">
-          <InfoField label="Base Currency" value={company.baseCurrency} />
-          <InfoField label="Currency Format" value={company.currencyFormat} />
+          <InfoField
+            label="Base Currency"
+            value={baseCurrencyLabels[company.baseCurrency] || company.baseCurrency}
+          />
+          <InfoField
+            label="Currency Format"
+            value={currencyFormatLabels[company.currencyFormat] || company.currencyFormat}
+          />
         </div>
       )}
     </Card>
@@ -450,24 +545,117 @@ function FeaturesCard({ company, draft, editing, onEdit, setField, toggleFeature
 }
 
 export default function CompanyPage() {
-  const [company, setCompany] = useState(initialCompany);
+  const [company, setCompany] = useState(emptyCompany);
   const [editingCard, setEditingCard] = useState(null);
   const [draft, setDraft] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [postalCodes, setPostalCodes] = useState([]);
+
+  useEffect(() => {
+    const loadCompany = async () => {
+      try {
+        const response = await api.get("/company/");
+        setCompany(serverToClient(response.data));
+      } catch (error) {
+        console.error(error);
+        alert("Gagal memuat data company.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCompany();
+  }, []);
+
+  useEffect(() => {
+    const cityName = draft?.city;
+    if (!cityName) {
+      setPostalCodes([]);
+      return;
+    }
+    let cancelled = false;
+    api
+      .get("/cities/")
+      .then((response) => {
+        const found = response.data.find((c) => c.name === cityName);
+        if (!found) {
+          setPostalCodes([]);
+          return;
+        }
+        return api
+          .get("/postal-codes/?city_code=" + found.code)
+          .then((res) => {
+            if (!cancelled) setPostalCodes(res.data.map((p) => p.code));
+          });
+      })
+      .catch(() => {
+        if (!cancelled) setPostalCodes([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [draft?.city]);
 
   const startEdit = (card) => {
     setDraft({ ...company, features: { ...company.features } });
+    setLogoFile(null);
+    setLogoPreview(company.logo);
     setEditingCard(card);
   };
 
   const cancelEdit = () => {
     setEditingCard(null);
     setDraft(null);
+    setLogoFile(null);
+    setLogoPreview(null);
   };
 
-  const saveEdit = () => {
-    setCompany(draft);
-    setEditingCard(null);
-    setDraft(null);
+  const saveEdit = async () => {
+    try {
+      setSaving(true);
+      const snake = (key) => key.replace(/[A-Z]/g, (char) => `_${char.toLowerCase()}`);
+      const formData = new FormData();
+      Object.entries(draft).forEach(([key, value]) => {
+        if (key === "features") return;
+        if (key === "logoName") return;
+        if (key === "logo") return;
+        if (value === null || value === undefined) return;
+        if (company[key] === value) return;
+        if (typeof value === "boolean") {
+          formData.append(snake(key), String(value));
+          return;
+        }
+        formData.append(snake(key), String(value));
+      });
+      Object.entries(draft.features).forEach(([key, value]) => {
+        if (company.features[key] === value) return;
+        formData.append(`feature_${snake(key)}`, String(value));
+      });
+      if (logoFile) {
+        formData.append("logo", logoFile);
+      }
+
+      const response = await api.put("/company/", formData);
+      setCompany(serverToClient(response.data));
+      setEditingCard(null);
+      setDraft(null);
+      setLogoFile(null);
+      setLogoPreview(null);
+    } catch (error) {
+      console.error(error);
+      const detail = error.response?.data;
+      const message =
+        detail && typeof detail === "object"
+          ? Object.entries(detail)
+              .map(([field, errs]) => `${field}: ${errs}`)
+              .join("\n")
+          : "Gagal menyimpan data company.";
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const setField = (field, value) => {
@@ -483,8 +671,21 @@ export default function CompanyPage() {
 
   const onLogoPick = (event) => {
     const file = event.target.files?.[0];
-    if (file) setField("logoName", file.name);
+    if (!file) return;
+    setLogoFile(file);
+    setDraft((current) => ({ ...current, logoName: file.name }));
+    const reader = new FileReader();
+    reader.onload = (e) => setLogoPreview(e.target.result);
+    reader.readAsDataURL(file);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-16">
+        <span className={pageSpinner} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-7 max-md:p-[18px]">
@@ -505,6 +706,8 @@ export default function CompanyPage() {
           setDraft={setDraft}
           onCancel={cancelEdit}
           onSave={saveEdit}
+          saving={saving}
+          postalCodes={postalCodes}
         />
 
         <BankInfoCard
@@ -515,6 +718,7 @@ export default function CompanyPage() {
           setField={setField}
           onCancel={cancelEdit}
           onSave={saveEdit}
+          saving={saving}
         />
 
         <OtherInfoCard
@@ -524,8 +728,10 @@ export default function CompanyPage() {
           onEdit={() => startEdit("other")}
           setField={setField}
           onLogoPick={onLogoPick}
+          logoPreview={logoPreview}
           onCancel={cancelEdit}
           onSave={saveEdit}
+          saving={saving}
         />
 
         <FeaturesCard
@@ -537,6 +743,7 @@ export default function CompanyPage() {
           toggleFeature={toggleFeature}
           onCancel={cancelEdit}
           onSave={saveEdit}
+          saving={saving}
         />
       </div>
     </div>

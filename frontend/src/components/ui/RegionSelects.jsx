@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { formLabel, selectBase } from "@/components/ui/styles";
-import provinsiData from "@/data/provinsi.json";
-import kotaData from "@/data/kabupaten_kota.json";
-
-let kecamatanCache = null;
-const kelurahanCache = {};
+import api from "@/services/api";
 
 function Field({ label, children }) {
   return (
@@ -44,83 +40,117 @@ export default function RegionSelects({
   const district = value.district || "";
   const village = value.village || "";
 
-  const [kecamatan, setKecamatan] = useState(kecamatanCache || []);
-  const [kelurahan, setKelurahan] = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [villages, setVillages] = useState([]);
+  const [loadingProv, setLoadingProv] = useState(false);
+  const [loadingCity, setLoadingCity] = useState(false);
   const [loadingKec, setLoadingKec] = useState(false);
   const [loadingKel, setLoadingKel] = useState(false);
 
-  const provId = province
-    ? provinsiData.find((p) => p.name === province)?.id || ""
+  const provinceCode = province
+    ? provinces.find((p) => p.name === province)?.code || ""
     : "";
-  const cityId = city
-    ? kotaData.find((k) => k.name === city && k.provinceId === provId)?.id || ""
+  const cityCode = city
+    ? cities.find((k) => k.name === city)?.code || ""
     : "";
-  const districtId = district
-    ? kecamatan.find((k) => k.name === district && k.cityId === cityId)?.id || ""
+  const districtCode = district
+    ? districts.find((k) => k.name === district)?.code || ""
     : "";
 
   useEffect(() => {
-    if (kecamatanCache) {
-      setKecamatan(kecamatanCache);
-      return;
-    }
-
     let alive = true;
-    setLoadingKec(true);
-    fetch("/data/kecamatan.json")
-      .then((r) => r.json())
-      .then((data) => {
-        kecamatanCache = data;
-        if (alive) setKecamatan(data);
+    setLoadingProv(true);
+    api
+      .get("/provinces/")
+      .then((response) => {
+        if (alive) setProvinces(response.data);
       })
       .catch(() => {})
       .finally(() => {
-        if (alive) setLoadingKec(false);
+        if (alive) setLoadingProv(false);
       });
-
     return () => {
       alive = false;
     };
   }, []);
 
   useEffect(() => {
-    if (!provId) {
-      setKelurahan([]);
+    if (!provinceCode) {
+      setCities([]);
       return;
     }
+    let alive = true;
+    setLoadingCity(true);
+    api
+      .get("/cities/?province_code=" + provinceCode)
+      .then((response) => {
+        if (alive) setCities(response.data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoadingCity(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [provinceCode]);
 
-    if (kelurahanCache[provId]) {
-      setKelurahan(kelurahanCache[provId]);
+  useEffect(() => {
+    if (!cityCode) {
+      setDistricts([]);
       return;
     }
+    let alive = true;
+    setLoadingKec(true);
+    api
+      .get("/districts/?city_code=" + cityCode)
+      .then((response) => {
+        if (alive) setDistricts(response.data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (alive) setLoadingKec(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [cityCode]);
 
+  useEffect(() => {
+    if (!districtCode) {
+      setVillages([]);
+      return;
+    }
     let alive = true;
     setLoadingKel(true);
-    fetch(`/data/kelurahan/${provId}.json`)
-      .then((r) => r.json())
-      .then((data) => {
-        kelurahanCache[provId] = data;
-        if (alive) setKelurahan(data);
+    api
+      .get("/villages/?district_code=" + districtCode)
+      .then((response) => {
+        if (alive) setVillages(response.data);
       })
       .catch(() => {})
       .finally(() => {
         if (alive) setLoadingKel(false);
       });
-
     return () => {
       alive = false;
     };
-  }, [provId]);
-
-  const kotaOptions = kotaData.filter((k) => k.provinceId === provId);
-  const kecOptions = kecamatan.filter((k) => k.cityId === cityId);
-  const kelOptions = kelurahan.filter((k) => k.districtId === districtId);
+  }, [districtCode]);
 
   const setProvince = (name) =>
-    onChange({ province: name, city: "", district: "", village: "" });
-  const setCity = (name) => onChange({ city: name, district: "", village: "" });
-  const setDistrict = (name) => onChange({ district: name, village: "" });
-  const setVillage = (name) => onChange({ village: name });
+    onChange({ province: name, city: "", district: "", village: "", postalCode: "" });
+  const setCity = (name) =>
+    onChange({ city: name, district: "", village: "", postalCode: "" });
+  const setDistrict = (name) => onChange({ district: name, village: "", postalCode: "" });
+  const setVillage = (name) => {
+    const found = villages.find((v) => v.name === name);
+    onChange({
+      village: name,
+      postalCode: found && found.postal_code ? found.postal_code : "",
+    });
+  };
 
   const allFields = [
     fields.includes("province") && (
@@ -129,9 +159,9 @@ export default function RegionSelects({
           value={province}
           onChange={setProvince}
           disabled={disabled}
-          loading={false}
+          loading={loadingProv}
           placeholder="Pilih provinsi"
-          options={provinsiData}
+          options={provinces}
           optionValueKey="name"
         />
       </Field>
@@ -142,9 +172,9 @@ export default function RegionSelects({
           value={city}
           onChange={setCity}
           disabled={disabled || !province}
-          loading={false}
+          loading={loadingCity}
           placeholder="Pilih kota/kabupaten"
-          options={kotaOptions}
+          options={cities}
           optionValueKey="name"
         />
       </Field>
@@ -157,7 +187,7 @@ export default function RegionSelects({
           disabled={disabled || !city}
           loading={loadingKec}
           placeholder="Pilih kecamatan"
-          options={kecOptions}
+          options={districts}
           optionValueKey="name"
         />
       </Field>
@@ -170,12 +200,11 @@ export default function RegionSelects({
           disabled={disabled || !district}
           loading={loadingKel}
           placeholder="Pilih kelurahan/desa"
-          options={kelOptions}
+          options={villages}
           optionValueKey="name"
         />
       </Field>
     ),
   ].filter(Boolean);
-
   return <>{allFields}</>;
 }

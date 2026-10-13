@@ -16,6 +16,9 @@ import {
   MapPinArea,
   CurrencyDollar,
   Clipboard,
+  Cube,
+  Scroll,
+  Truck,
 } from "@phosphor-icons/react";
 import brandLogo from "@/assets/brand.png";
 
@@ -99,7 +102,22 @@ const navItems = [
     label: "Tagging Rules",
     icon: Tag,
     path: "/taggingrules",
-  }
+  },
+  {
+    label: "Products",
+    icon: Scroll,
+    path: "/productsmain",
+  },
+  {
+    label: "Productions",
+    icon: Cube,
+    path: "/productionsmain",
+  },
+  {
+    label: "Fulfillment",
+    icon: Truck,
+    path: "/fulfillment",
+  },
 ];
 
 export default function Sidebar({ open, onClose }) {

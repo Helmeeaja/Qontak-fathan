@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Pencil } from "@phosphor-icons/react";
 import {
   btnModalCancel,
@@ -519,7 +520,10 @@ function InvoiceReminder() {
 }
 
 export default function SalesPage() {
-  const [mainPage, setMainPage] = useState(true);
+  const location = useLocation();
+  const [mainPage, setMainPage] = useState(
+    location.state?.defaultTab !== "invoiceReminder"
+  );
 
   return (
     <div className="p-7 max-md:p-[18px]">

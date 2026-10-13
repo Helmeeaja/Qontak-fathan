@@ -125,7 +125,7 @@ export const dummyApprovalRules = [
     criteria: ["specificValue"],
     amountValue: 0,
     overdueDays: 0,
-    levels: [{ approverType: "Either must approve", approvers: ["fathan.hilmi"] }],
+    levels: [{ approverType: "Either must approve", approvers: ["budi.santoso"] }],
     lastEdited: "18 Sep 2026, 19:12",
     lastEditedBy: "Fathan Hilmi",
   },

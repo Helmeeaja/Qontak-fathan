@@ -229,4 +229,6 @@ frontend/dbg*.cjs
 frontend/dbg-subassembly.cjs
 frontend/verify-*.cjs
 frontend/.verify-*.cjs
+frontend/.dbg-bundle.cjs
+frontend/scripts/verify-*.cjs
 frontend/.iconstub/

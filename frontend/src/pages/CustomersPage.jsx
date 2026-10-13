@@ -357,7 +357,11 @@ export default function CustomersPage() {
                   village: form.village,
                 }}
                 onChange={(region) =>
-                  setForm((current) => ({ ...current, ...region }))
+                  setForm((current) => ({
+                    ...current,
+                    ...region,
+                    postal_code: region.postalCode ?? current.postal_code,
+                  }))
                 }
               />
 

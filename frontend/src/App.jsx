@@ -18,8 +18,13 @@ import AccountMappingPage from "./pages/AccountMappingPage";
 import BillingsPage from "./pages/BillingsPage";
 import ApprovalRulesPage from "./pages/ApprovalRulesPage";
 import TaggingRulesPage from "./pages/TaggingRulesPage";
+import ProductsMainPage from "./pages/ProductsMainPage";
+import ProductionsMainPage from "./pages/ProductionsMainPage";
+import FulfillmentPage from "./pages/FulfillmentPage";
+import ReportsPage from "./pages/ReportsPage";
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
+
 
 export default function App() {
   return (
@@ -57,8 +62,20 @@ export default function App() {
           <Route path="/accountmapping" element={<AccountMappingPage />}/>
 
           <Route path="/billings" element={<BillingsPage />}/>
+
           <Route path="/approvalrules" element={<ApprovalRulesPage />}/>
+
           <Route path="/taggingrules" element={<TaggingRulesPage />}/>
+
+          <Route path="/productsmain" element={<ProductsMainPage />}/>
+
+          <Route path="/reports/inventory_summary" element={<ReportsPage />}/>
+
+          <Route path="/reports/warehouse_stock_quantity" element={<ReportsPage />}/>
+
+          <Route path="/productionsmain" element={<ProductionsMainPage />}/>
+
+          <Route path="/fulfillment" element={<FulfillmentPage />}/>
 
         </Route>
       </Route>

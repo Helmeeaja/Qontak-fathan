@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("qontak_sales.apps.accounts.urls")),
     path("api/", include("qontak_sales.apps.coa.urls")),
+    path("api/", include("qontak_sales.apps.regions.urls")),
 ]
 
 if settings.DEBUG:

@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   btnModalCancel,
   btnModalSubmit,
   formLabel,
+  pageSpinner,
   selectBase,
 } from "@/components/ui/styles";
+import api from "../services/api";
 
 const initialProductionSettings = {
   planDatesField: "Required",
   allowBackdate: false,
   allowPartialProduction: false,
 };
+
+const planDateModeToLabel = {
+  required: "Required",
+  optional: "Optional",
+  hidden: "Hide",
+};
+
+const labelToPlanDateMode = {
+  Required: "required",
+  Optional: "optional",
+  Hide: "hidden",
+};
+
+const serverToClient = (data) => ({
+  planDatesField: planDateModeToLabel[data.production_plan_date_mode] || "Required",
+  allowBackdate: !!data.allow_backdated_plan_date,
+  allowPartialProduction: !!data.allow_partial_production,
+});
 
 function SettingRow({ label, children }) {
   return (
@@ -48,6 +68,25 @@ export default function ProductionsPage() {
   const [savedSettings, setSavedSettings] = useState(initialProductionSettings);
   const [draft, setDraft] = useState(initialProductionSettings);
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    api
+      .get("/production-settings/")
+      .then((response) => {
+        const settings = serverToClient(response.data);
+        setSavedSettings(settings);
+        setDraft(settings);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Gagal memuat pengaturan productions.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const readOnly = !editing;
 
@@ -69,10 +108,40 @@ export default function ProductionsPage() {
     setDraft(savedSettings);
   };
 
-  const saveEdit = () => {
-    setSavedSettings(draft);
-    setEditing(false);
+  const saveEdit = async () => {
+    try {
+      setSaving(true);
+      const response = await api.put("/production-settings/", {
+        production_plan_date_mode: labelToPlanDateMode[draft.planDatesField],
+        allow_backdated_plan_date: draft.allowBackdate,
+        allow_partial_production: draft.allowPartialProduction,
+      });
+      const settings = serverToClient(response.data);
+      setSavedSettings(settings);
+      setDraft(settings);
+      setEditing(false);
+    } catch (error) {
+      console.error(error);
+      const detail = error.response?.data;
+      const message =
+        detail && typeof detail === "object"
+          ? Object.entries(detail)
+              .map(([field, errs]) => field + ": " + errs)
+              .join("\n")
+          : "Gagal menyimpan pengaturan productions.";
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-16">
+        <span className={pageSpinner} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-7 max-md:p-[18px]">
