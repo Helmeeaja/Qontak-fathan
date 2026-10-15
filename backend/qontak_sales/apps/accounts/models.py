@@ -124,6 +124,7 @@ class CustomUser(AbstractUser):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active")
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, default="member")
     access_time_limit = models.CharField(max_length=255, blank=True, default="")
+    role_config = models.JSONField(blank=True, default=dict)
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.role})"

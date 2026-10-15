@@ -1,8 +1,8 @@
+from .models import Company, ProductionSetting, Role, RoleAuthority
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Company, ProductionSetting, Role, RoleAuthority
 
 User = get_user_model()
 
@@ -27,16 +27,18 @@ class RoleSerializer(serializers.ModelSerializer):
             RoleAuthority.objects.create(role=role, **authority)
         return role
 
-
-class ProductionSettingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductionSetting
-        fields = [
-            "id",
-            "production_plan_date_mode",
-            "allow_backdated_plan_date",
-            "allow_partial_production",
-        ]
+    def update(self, instance, validated_data):
+        if instance.is_default:
+            raise serializers.ValidationError("Role bawaan tidak dapat diubah.")
+        authorities = validated_data.pop("authorities", None)
+        instance.name = validated_data.get("name", instance.name)
+        instance.description = validated_data.get("description", instance.description)
+        instance.save()
+        if authorities is not None:
+            instance.authorities.all().delete()
+            for authority in authorities:
+                RoleAuthority.objects.create(role=instance, **authority)
+        return instance
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -142,6 +144,7 @@ class InviteMemberSerializer(serializers.Serializer):
         child=serializers.PrimaryKeyRelatedField(queryset=Role.objects.all()),
         required=False,
     )
+    role_config = serializers.JSONField(required=False, default=dict)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -165,7 +168,7 @@ class MemberSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "username", "email", "first_name", "last_name",
-            "status", "type", "access_time_limit", "role", "roles",
+            "status", "type", "access_time_limit", "role", "roles", "role_config",
         ]
         read_only_fields = ["id", "role"]
 
@@ -187,3 +190,13 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError("Account is disabled.")
         refresh = RefreshToken.for_user(user)
         return {"refresh": str(refresh), "access": str(refresh.access_token)}
+
+class ProductionSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductionSetting
+        fields = [
+            "id",
+            "production_plan_date_mode",
+            "allow_backdated_plan_date",
+            "allow_partial_production",
+        ]
