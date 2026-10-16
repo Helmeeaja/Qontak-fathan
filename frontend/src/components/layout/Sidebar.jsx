@@ -4,6 +4,7 @@ import {
   UserPlus,
   ChartBar,
   Users,
+  AddressBook,
   Buildings,
   UsersThree,
   X,
@@ -117,6 +118,11 @@ const navItems = [
     label: "Fulfillment",
     icon: Truck,
     path: "/fulfillment",
+  },
+    {
+    label: "Contacts",
+    icon: AddressBook,
+    path: "/contacts",
   },
 ];
 

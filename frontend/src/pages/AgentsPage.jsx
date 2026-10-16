@@ -737,7 +737,7 @@ export default function AgentsPage() {
 
             <div className="p-[22px]">
               <p className="m-0 text-slate-600">
-                Apakah lo yakin mau menghapus
+                Apakah kamu yakin ingin menghapus
                 agent ini?
               </p>
             </div>

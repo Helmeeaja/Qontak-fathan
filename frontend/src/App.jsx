@@ -24,6 +24,7 @@ import FulfillmentPage from "./pages/FulfillmentPage";
 import ReportsPage from "./pages/ReportsPage";
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
+import ContactsPage from "./pages/ContactsPage";
 
 
 export default function App() {
@@ -76,6 +77,8 @@ export default function App() {
           <Route path="/productionsmain" element={<ProductionsMainPage />}/>
 
           <Route path="/fulfillment" element={<FulfillmentPage />}/>
+
+          <Route path="/contacts" element={<ContactsPage />} />
 
         </Route>
       </Route>
