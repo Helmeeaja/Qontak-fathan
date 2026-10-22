@@ -1,3 +1,4 @@
+
 import { useMemo, useState } from "react";
 import {
   DownloadSimple,
@@ -52,6 +53,7 @@ const toComparable = (value) => {
 
 function FilterSelect({ value, options, onChange, placeholder, full }) {
   const dropdown = useDropdown();
+
   return (
     <>
       <button
@@ -60,11 +62,15 @@ function FilterSelect({ value, options, onChange, placeholder, full }) {
         data-dropdown-trigger
         onClick={dropdown.toggle}
         className={`flex h-[38px] cursor-pointer items-center justify-between gap-2 rounded-md border bg-white px-3 text-left text-[14px] ${full ? "w-full" : "w-[237px]"}`}
-        style={{ borderColor: MK.border, color: value ? MK.text : "#8f96a3" }}
+        style={{
+          borderColor: MK.border,
+          color: value ? MK.text : "#8f96a3",
+        }}
       >
         <span className="truncate">{value || placeholder}</span>
         <CaretDown size={14} style={{ color: MK.muted }} />
       </button>
+
       <DropdownPanel
         rect={dropdown.rect}
         onClose={dropdown.close}
@@ -112,15 +118,22 @@ function FilterModal({
             className="mr-auto cursor-pointer border-0 bg-transparent text-[14px] font-semibold"
             style={{ color: MK.muted }}
             onClick={() => {
-              setDraft({ startDate: "", endDate: "", status: "", fitur: "" });
+              setDraft({
+                startDate: "",
+                endDate: "",
+                status: "",
+                fitur: "",
+              });
               onReset();
             }}
           >
             Reset filter
           </button>
+
           <button type="button" className={btnGhost} onClick={onClose}>
             Batalkan
           </button>
+
           <button
             type="button"
             className={btnPrimary}
@@ -140,6 +153,7 @@ function FilterModal({
           >
             Tanggal awal
           </label>
+
           <input
             id="filter_start"
             type="date"
@@ -158,6 +172,7 @@ function FilterModal({
           >
             Tanggal akhir
           </label>
+
           <input
             id="filter_end"
             type="date"
@@ -172,6 +187,7 @@ function FilterModal({
           <span className="mb-1 block text-[13px]" style={{ color: MK.muted }}>
             Status
           </span>
+
           <FilterSelect
             value={draft.status}
             options={statusOptions}
@@ -187,6 +203,7 @@ function FilterModal({
           <span className="mb-1 block text-[13px]" style={{ color: MK.muted }}>
             Fitur
           </span>
+
           <FilterSelect
             value={draft.fitur}
             options={featureOptions}
@@ -233,6 +250,7 @@ function ImportInfo({ onClose, onReload }) {
         >
           Muat ulang halaman
         </button>
+
         <span
           className="text-[14px]"
           style={{ color: MK.brand, cursor: "default" }}
@@ -267,34 +285,48 @@ export default function ImportExportPage() {
   const [pageSize, setPageSize] = useState(25);
 
   const source = tab === "impor" ? importRows : exportRows;
+
   const featureOptions =
     tab === "impor" ? importFeatureOptions : exportFeatureOptions;
+
   const statusOptions =
     tab === "impor" ? importStatusOptions : exportStatusOptions;
 
   const filtered = useMemo(() => {
     const keyword = search.trim().toLowerCase();
+
     return source.filter((row) => {
       const matchKeyword =
         !keyword ||
         row.fitur.toLowerCase().includes(keyword) ||
         row.status.toLowerCase().includes(keyword) ||
         row.waktu.toLowerCase().includes(keyword);
+
       const matchFeature = !feature || row.fitur === feature;
       const matchStatus = !status || row.status === status;
       const comparable = toComparable(row.waktu);
+
       const matchStart =
-        !filter.startDate || comparable >= filter.startDate.replace(/-/g, "");
+        !filter.startDate ||
+        comparable >= filter.startDate.replace(/-/g, "");
+
       const matchEnd =
-        !filter.endDate || comparable <= filter.endDate.replace(/-/g, "");
+        !filter.endDate ||
+        comparable <= filter.endDate.replace(/-/g, "");
+
       return (
-        matchKeyword && matchFeature && matchStatus && matchStart && matchEnd
+        matchKeyword &&
+        matchFeature &&
+        matchStatus &&
+        matchStart &&
+        matchEnd
       );
     });
   }, [source, search, feature, status, filter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
+
   const pageItems = filtered.slice(
     (safePage - 1) * pageSize,
     safePage * pageSize,
@@ -333,6 +365,7 @@ export default function ImportExportPage() {
       <div className="flex items-center gap-6 px-6">
         {TABS.map((item) => {
           const active = tab === item.id;
+
           return (
             <button
               key={item.id}
@@ -342,6 +375,7 @@ export default function ImportExportPage() {
               style={{ color: active ? MK.brand : MK.muted }}
             >
               {item.label}
+
               <span
                 className="absolute bottom-0 left-1/2 h-[2px] -translate-x-1/2"
                 style={{
@@ -371,7 +405,8 @@ export default function ImportExportPage() {
           />
         ) : null}
 
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="mb-4  flex-wrap items-center gap-3">
+          <div className="flex gap-2">
           <FilterSelect
             value={feature}
             options={featureOptions}
@@ -391,7 +426,14 @@ export default function ImportExportPage() {
             }}
             placeholder="Semua status"
           />
-
+        </div>
+          <div>
+          <EmptyState
+            image={emptyFolderImg}
+            title="Belum ada file"
+            description="Daftar file Anda akan muncul di sini."
+          />
+        </div>
           <div className="ml-auto flex items-center gap-3">
             {tab === "impor" ? (
               <>
@@ -429,92 +471,124 @@ export default function ImportExportPage() {
           </div>
         </div>
 
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              <th className={thBase} style={{ color: MK.text, width: "30%" }}>
-                Tanggal &amp; waktu
-              </th>
-              <th className={thBase} style={{ color: MK.text, width: "18%" }}>
-                Status
-              </th>
-              <th className={thBase} style={{ color: MK.text, width: "25%" }}>
-                Fitur
-              </th>
-              <th className={thBase} style={{ color: MK.text, width: "16%" }}>
-                Periode
-              </th>
-              <th className={thBase} style={{ width: 188 }} />
-            </tr>
-          </thead>
-
-          <tbody>
-            {pageItems.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="bg-white p-0">
-                  <EmptyState
-                    image={emptyFolderImg}
-                    title="Belum ada file"
-                    description="Daftar file Anda akan muncul di sini."
-                  />
-                </td>
-              </tr>
-            ) : (
-              pageItems.map((row) => (
-                <tr key={row.id} className="hover:bg-[#fafbff]">
-                  <td className={`${tdBase} py-5`} style={{ color: MK.text }}>
-                    {row.waktu}
-                  </td>
-                  <td className={`${tdBase} py-5`}>
-                    <StatusBadge status={row.status} />
-                  </td>
-                  <td className={`${tdBase} py-5`} style={{ color: MK.text }}>
-                    {row.fitur}
-                  </td>
-                  <td className={`${tdBase} py-5`} style={{ color: MK.text }}>
-                    {row.periode}
-                  </td>
-                  <td className={`${tdBase} py-5`}>
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        className={iconBtn}
-                        title={
-                          row.status === "Selesai"
-                            ? "Unduh file"
-                            : "File belum bisa diunduh"
-                        }
-                        aria-label={`Unduh ${row.fitur}`}
-                        disabled={row.status !== "Selesai"}
-                        style={
-                          row.status !== "Selesai"
-                            ? { color: "#c3c9d4", cursor: "not-allowed" }
-                            : undefined
-                        }
-                      >
-                        <DownloadSimple size={17} />
-                      </button>
-                    </div>
-                  </td>
+        {tab === "impor" && (
+          <>
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th
+                    className={thBase}
+                    style={{ color: MK.text, width: "30%" }}
+                  >
+                    Tanggal &amp; waktu
+                  </th>
+                  <th
+                    className={thBase}
+                    style={{ color: MK.text, width: "18%" }}
+                  >
+                    Status
+                  </th>
+                  <th
+                    className={thBase}
+                    style={{ color: MK.text, width: "25%" }}
+                  >
+                    Fitur
+                  </th>
+                  <th
+                    className={thBase}
+                    style={{ color: MK.text, width: "16%" }}
+                  >
+                    Periode
+                  </th>
+                  <th className={thBase} style={{ width: 188 }} />
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              </thead>
 
-        <TableFooter
-          pageSize={pageSize}
-          onPageSize={(value) => {
-            setPageSize(value);
-            setPage(1);
-          }}
-          from={from}
-          to={to}
-          total={filtered.length}
-          page={safePage}
-          totalPages={totalPages}
-          onPage={setPage}
-        />
+              <tbody>
+                {pageItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="bg-white p-0">
+                      <EmptyState
+                        image={emptyFolderImg}
+                        title="Belum ada file"
+                        description="Daftar file Anda akan muncul di sini."
+                      />
+                    </td>
+                  </tr>
+                ) : (
+                  pageItems.map((row) => (
+                    <tr key={row.id} className="hover:bg-[#fafbff]">
+                      <td
+                        className={`${tdBase} py-5`}
+                        style={{ color: MK.text }}
+                      >
+                        {row.waktu}
+                      </td>
+
+                      <td className={`${tdBase} py-5`}>
+                        <StatusBadge status={row.status} />
+                      </td>
+
+                      <td
+                        className={`${tdBase} py-5`}
+                        style={{ color: MK.text }}
+                      >
+                        {row.fitur}
+                      </td>
+
+                      <td
+                        className={`${tdBase} py-5`}
+                        style={{ color: MK.text }}
+                      >
+                        {row.periode}
+                      </td>
+
+                      <td className={`${tdBase} py-5`}>
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            className={iconBtn}
+                            title={
+                              row.status === "Selesai"
+                                ? "Unduh file"
+                                : "File belum bisa diunduh"
+                            }
+                            aria-label={`Unduh ${row.fitur}`}
+                            disabled={row.status !== "Selesai"}
+                            style={
+                              row.status !== "Selesai"
+                                ? {
+                                    color: "#c3c9d4",
+                                    cursor: "not-allowed",
+                                  }
+                                : undefined
+                            }
+                          >
+                            <DownloadSimple size={17} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+
+            <TableFooter
+              pageSize={pageSize}
+              onPageSize={(value) => {
+                setPageSize(value);
+                setPage(1);
+              }}
+              from={from}
+              to={to}
+              total={filtered.length}
+              page={safePage}
+              totalPages={totalPages}
+              onPage={setPage}
+            />
+          </>
+        )}
       </section>
 
       {showFilter ? (
@@ -529,7 +603,10 @@ export default function ImportExportPage() {
           statusOptions={statusOptions}
           onClose={() => setShowFilter(false)}
           onApply={(draft) => {
-            setFilter({ startDate: draft.startDate, endDate: draft.endDate });
+            setFilter({
+              startDate: draft.startDate,
+              endDate: draft.endDate,
+            });
             setFeature(draft.fitur || "");
             setStatus(draft.status || "");
             setPage(1);

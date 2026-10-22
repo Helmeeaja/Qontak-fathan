@@ -310,7 +310,7 @@ export default function AuditsPage() {
           <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th style={{ ...thStyle, width: "13em" }}>
+                <th  className="bg-cyan-100" style={{ ...thStyle, width: "13em " }}>
                   <span className="inline-flex items-center gap-1">
                     Tanggal
                     <DateFilter
@@ -325,7 +325,7 @@ export default function AuditsPage() {
                   </span>
                 </th>
 
-                <th style={{ ...thStyle, width: "10em" }}>
+                <th className="bg-cyan-100" style={{ ...thStyle, width: "10em" }}>
                   <span className="inline-flex items-center gap-1">
                     Tindakan
                     <ActionFilter
@@ -338,10 +338,10 @@ export default function AuditsPage() {
                   </span>
                 </th>
 
-                <th style={thStyle}>Tipe</th>
-                <th style={thStyle}>Nomor</th>
+                <th className="bg-cyan-100" style={thStyle}>Tipe</th>
+                <th className="bg-cyan-100" style={thStyle}>Nomor</th>
 
-                <th style={thStyle}>
+                <th className="bg-cyan-100" style={thStyle}>
                   <span className="inline-flex items-center gap-1">
                     Pengguna
                     <UserFilter
@@ -354,7 +354,7 @@ export default function AuditsPage() {
                   </span>
                 </th>
 
-                <th style={{ ...thStyle, width: "40%" }}>Detil</th>
+                <th className="bg-cyan-100" style={{ ...thStyle, width: "40%" }}>Detil</th>
               </tr>
             </thead>
 
@@ -363,6 +363,7 @@ export default function AuditsPage() {
                 <tr>
                   <td
                     colSpan={6}
+
                     style={{ ...tdStyle, textAlign: "center", height: 309 }}
                   >
                     <p
@@ -392,6 +393,7 @@ export default function AuditsPage() {
         </div>
 
         <LegacyPagination
+          
           page={safePage}
           totalPages={totalPages}
           onPage={setPage}

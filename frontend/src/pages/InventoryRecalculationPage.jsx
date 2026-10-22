@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
+import { CalendarCheck, WarningCircle} from "@phosphor-icons/react";
 import emptyFolderImg from "@/assets/empty-folder.png";
 
 import {
@@ -51,7 +51,7 @@ export default function InventoryRecalculationPage() {
           className="m-0 mt-1 text-[24px] font-semibold leading-[32px]"
           style={{ color: MK.text }}
         >
-          Penghitungan ulang nilai persediaan
+          Penghitungan ulang transaksi berjalan 
         </h1>
       </div>
 
@@ -81,8 +81,9 @@ export default function InventoryRecalculationPage() {
             </p>
           </div>
 
-          <div className="min-w-[198px]">
+          <div className="min-w-[198px] p-3 border border-3 border rounded  border-gray-200 ">
             <div className="flex items-center gap-3">
+              <CalendarCheck size={25} color="blue" />
               <p
                 className="m-0 text-[14px] font-semibold"
                 style={{ color: MK.text }}
@@ -118,12 +119,15 @@ export default function InventoryRecalculationPage() {
               <span style={{ color: MK.text }}>-</span>
             )}
           </InfoRow>
+          <div className="flex"/>
           <InfoRow label="Transaksi pemicu">
             {pendingLog ? pendingLog.transaksi : "-"}
           </InfoRow>
+
           <InfoRow label="Tanggal transaksi pemicu">
             {pendingLog ? pendingLog.tanggalTransaksi : "-"}
           </InfoRow>
+
         </div>
 
         <h2
