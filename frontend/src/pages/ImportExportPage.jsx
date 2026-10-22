@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import {
   DownloadSimple,
@@ -405,35 +404,29 @@ export default function ImportExportPage() {
           />
         ) : null}
 
-        <div className="mb-4  flex-wrap items-center gap-3">
+        <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="flex gap-2">
-          <FilterSelect
-            value={feature}
-            options={featureOptions}
-            onChange={(value) => {
-              setFeature(value === "Semua fitur" ? "" : value);
-              setPage(1);
-            }}
-            placeholder="Semua fitur"
-          />
+            <FilterSelect
+              value={feature}
+              options={featureOptions}
+              onChange={(value) => {
+                setFeature(value === "Semua fitur" ? "" : value);
+                setPage(1);
+              }}
+              placeholder="Semua fitur"
+            />
 
-          <FilterSelect
-            value={status}
-            options={statusOptions}
-            onChange={(value) => {
-              setStatus(value === "Semua status" ? "" : value);
-              setPage(1);
-            }}
-            placeholder="Semua status"
-          />
-        </div>
-          <div>
-          <EmptyState
-            image={emptyFolderImg}
-            title="Belum ada file"
-            description="Daftar file Anda akan muncul di sini."
-          />
-        </div>
+            <FilterSelect
+              value={status}
+              options={statusOptions}
+              onChange={(value) => {
+                setStatus(value === "Semua status" ? "" : value);
+                setPage(1);
+              }}
+              placeholder="Semua status"
+            />
+          </div>
+
           <div className="ml-auto flex items-center gap-3">
             {tab === "impor" ? (
               <>
@@ -588,6 +581,14 @@ export default function ImportExportPage() {
               onPage={setPage}
             />
           </>
+        )}
+
+        {tab === "ekspor" && (
+          <EmptyState
+            image={emptyFolderImg}
+            title="Belum ada file"
+            description="Daftar file Anda akan muncul di sini."
+          />
         )}
       </section>
 

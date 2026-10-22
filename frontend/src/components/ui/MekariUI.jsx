@@ -16,9 +16,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 
-/* ============================================================
-   TOKEN WARNA & UKURAN (hasil pengukuran langsung dari Mekari)
-   ============================================================ */
+
 export const MK = {
   text: "#232933",
   muted: "#626b79",
@@ -34,12 +32,7 @@ export const MK = {
   legacyBorder: "#cfd9db",
 };
 
-export const MK_FONT = 'Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif';
-
-/* ============================================================
-   DROPDOWN — pakai portal + position:fixed supaya TIDAK terpotong
-   card induk, isi bisa discroll.
-   ============================================================ */
+export const MK_FONT = 'Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif'
 export function useDropdown() {
   const triggerRef = useRef(null);
   const [rect, setRect] = useState(null);
@@ -196,9 +189,6 @@ export function CheckItem({ children, checked, onChange }) {
   );
 }
 
-/* ============================================================
-   HEADER
-   ============================================================ */
 export function PixelHeader({
   title,
   action,
@@ -280,9 +270,7 @@ export function LegacyHeader({
   );
 }
 
-/* ============================================================
-   TOMBOL
-   ============================================================ */
+
 export const btnPrimary =
   "inline-flex h-[38px] cursor-pointer items-center justify-center gap-1.5 rounded-md border-0 bg-[#4b61dd] px-4 text-[14px] font-semibold text-white transition-colors hover:bg-[#3f52c9] disabled:cursor-not-allowed disabled:bg-[#a9a9a9]";
 export const btnOutline =
@@ -295,9 +283,7 @@ export const iconBtn =
 export const inputBase =
   "h-[38px] w-full rounded-md border border-[#d0d6dd] bg-white px-3 text-[14px] outline-none transition-colors placeholder:text-[#8f96a3] focus:border-[#4b61dd]";
 
-/* ============================================================
-   TABEL (pixel)
-   ============================================================ */
+
 export const thBase =
   "bg-[#f8f9fb] px-2 py-4 text-left text-[14px] font-semibold leading-5 align-middle";
 export const tdBase = "bg-white px-2 py-3.5 text-[14px] leading-5 align-middle";
@@ -451,8 +437,8 @@ export function LegacyPagination({ page, totalPages, onPage }) {
     "flex h-[35px] min-w-[34px] cursor-pointer items-center justify-center border border-[#ddd] bg-white px-2 text-[14px] no-underline";
   return (
     <div
-      className="flex items-center justify-end gap-0 px-[15px] py-5"
-      style={{ background: "#e0f7ff" }}
+      className="flex items-center justify-end gap-0 px-[15px] py-5 bg-cyan-100"
+      
     >
       <button
         type="button"
@@ -490,9 +476,6 @@ export function LegacyPagination({ page, totalPages, onPage }) {
   );
 }
 
-/* ============================================================
-   MODAL
-   ============================================================ */
 export function Modal({ title, onClose, children, footer, width = 448 }) {
   useEffect(() => {
     const onKey = (event) => {
