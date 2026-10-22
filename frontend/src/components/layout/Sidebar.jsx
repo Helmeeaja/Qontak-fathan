@@ -20,6 +20,7 @@ import {
   Cube,
   Scroll,
   Truck,
+  SquaresFour,
 } from "@phosphor-icons/react";
 import brandLogo from "@/assets/brand.png";
 
@@ -58,33 +59,34 @@ const navItems = [
   {
     label: "Sales",
     icon: Tag,
-    path: "/sales"
+    path: "/sales",
   },
   {
     label: "Purchases",
     icon: ShoppingCart,
-    path:"/purchases"
+    path: "/purchases",
   },
   {
     label: "Products",
     icon: Package,
-    path: "/products"
+    path: "/products",
   },
   {
     label: "Productions",
     icon: Factory,
-    path: "/productions"
+    path: "/productions",
   },
   {
     label: "Template",
     icon: Article,
-    path: "/template"
+    path: "/template",
   },
   {
     label: "Custom Fields",
     icon: NotePencil,
     path: "/customfields",
-  },{
+  },
+  {
     label: "Accounts Mapping",
     icon: MapPinArea,
     path: "/accountmapping",
@@ -105,6 +107,11 @@ const navItems = [
     path: "/taggingrules",
   },
   {
+    label: "Daftar lainnya",
+    icon: SquaresFour,
+    path: "/daftar-lainnya",
+  },
+  {
     label: "Products",
     icon: Scroll,
     path: "/productsmain",
@@ -119,7 +126,7 @@ const navItems = [
     icon: Truck,
     path: "/fulfillment",
   },
-    {
+  {
     label: "Contacts",
     icon: AddressBook,
     path: "/contacts",
@@ -129,11 +136,10 @@ const navItems = [
 export default function Sidebar({ open, onClose }) {
   const location = useLocation();
 
-  const isManager =
-    localStorage.getItem("user_role") === "MANAGER";
+  const isManager = localStorage.getItem("user_role") === "MANAGER";
 
   const visibleItems = navItems.filter(
-    (item) => !item.managerOnly || isManager
+    (item) => !item.managerOnly || isManager,
   );
 
   return (

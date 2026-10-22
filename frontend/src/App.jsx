@@ -25,6 +25,13 @@ import ReportsPage from "./pages/ReportsPage";
 import MainLayout from "./components/layout/MainLayout";
 import AuthGuard from "./components/layout/AuthGuard";
 import ContactsPage from "./pages/ContactsPage";
+import AttachmentsPage from "./pages/AttachmentsPage";
+import DaftarLainnya from "./pages/DaftarLainnya";
+import UnitsPage from "./pages/UnitsPage";
+import AuditsPage from "./pages/AuditsPage";
+import ImportExportPage from "./pages/ImportExportPage";
+import InventoryRecalculationPage from "./pages/InventoryRecalculationPage";
+
 
 
 export default function App() {
@@ -50,43 +57,54 @@ export default function App() {
 
           <Route path="/sales" element={<SalesPage />} />
 
-          <Route path="/purchases" element={<PurchasesPage />}/>
+          <Route path="/purchases" element={<PurchasesPage />} />
 
-          <Route path="/products" element={<ProductsPage />}/>
+          <Route path="/products" element={<ProductsPage />} />
 
-          <Route path="/productions" element={<ProductionsPage />}/>
+          <Route path="/productions" element={<ProductionsPage />} />
 
-          <Route path="/template" element={<TemplatePage />}/>
+          <Route path="/template" element={<TemplatePage />} />
 
-          <Route path="/customfields" element={<CustomFieldsPage />}/>
+          <Route path="/customfields" element={<CustomFieldsPage />} />
 
-          <Route path="/accountmapping" element={<AccountMappingPage />}/>
+          <Route path="/accountmapping" element={<AccountMappingPage />} />
 
-          <Route path="/billings" element={<BillingsPage />}/>
+          <Route path="/billings" element={<BillingsPage />} />
 
-          <Route path="/approvalrules" element={<ApprovalRulesPage />}/>
+          <Route path="/approvalrules" element={<ApprovalRulesPage />} />
 
-          <Route path="/taggingrules" element={<TaggingRulesPage />}/>
+          <Route path="/taggingrules" element={<TaggingRulesPage />} />
 
-          <Route path="/productsmain" element={<ProductsMainPage />}/>
+          <Route path="/productsmain" element={<ProductsMainPage />} />
 
-          <Route path="/reports/inventory_summary" element={<ReportsPage />}/>
+          <Route path="/reports/inventory_summary" element={<ReportsPage />} />
 
-          <Route path="/reports/warehouse_stock_quantity" element={<ReportsPage />}/>
+          <Route
+            path="/reports/warehouse_stock_quantity"
+            element={<ReportsPage />}
+          />
 
-          <Route path="/productionsmain" element={<ProductionsMainPage />}/>
+          <Route path="/productionsmain" element={<ProductionsMainPage />} />
 
-          <Route path="/fulfillment" element={<FulfillmentPage />}/>
+          <Route path="/fulfillment" element={<FulfillmentPage />} />
 
           <Route path="/contacts" element={<ContactsPage />} />
 
+          <Route path="/attachments" element={<AttachmentsPage />} />
+
+          <Route path="/units" element={<UnitsPage />} />
+
+          <Route path="/audits" element={<AuditsPage />} />
+
+          <Route path="/inventory-recalculation" element={<InventoryRecalculationPage />} />
+
+          <Route path="/importexport" element={<ImportExportPage />} />
+
+          <Route path="/daftar-lainnya" element={<DaftarLainnya />} />
         </Route>
       </Route>
 
-      <Route
-        path="*"
-        element={<Navigate to="/login" replace />}
-      />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
