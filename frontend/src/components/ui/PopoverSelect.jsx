@@ -2,11 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CaretDown, MagnifyingGlass } from "@phosphor-icons/react";
 import { DropdownPanel, MK, MK_FONT, MenuItem, useDropdown } from "./MekariUI";
 
-/* ============================================================
-   Kompatibilitas: MultiSelect masih meng-import useOutsideClose
-   dari file ini. Logika dropdown-nya sendiri sekarang ada di
-   MekariUI (useDropdown + DropdownPanel) — satu implementasi saja.
-   ============================================================ */
+
 export function useOutsideClose() {
   const ref = useRef(null);
   const [open, setOpen] = useState(false);
